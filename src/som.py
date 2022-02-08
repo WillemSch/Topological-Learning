@@ -2,6 +2,7 @@ import numpy as np
 from util import add_tuples
 from util import multiply_tuple
 
+
 def simple_neighbourhood_function(depth):
     weights = [1., .2]
     if depth > 2:

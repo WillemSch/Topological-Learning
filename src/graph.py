@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 from util import add_tuples
 from util import multiply_tuple
+from util import average_tuples
 
 
 class Node:
@@ -26,6 +27,12 @@ class Node:
             self.neighbours.append(other)
         if self not in other.neighbours:
             other.neighbours.append(self)
+
+    def disconnect(self, other):
+        if other in self.neighbours:
+            self.neighbours.remove(other)
+        if self in other.neighbours:
+            other.neighbours.remove(self)
 
     def get_nth_neighbours(self, depth):
         neighbours = [self]
@@ -52,6 +59,18 @@ class Graph:
             coords = add_tuples(tuple(np.zeros(dimensions)), i)
             self.nodes[i] = Node(coordinates=multiply_tuple(coord_scale, coords))
 
+    def add_node(self, coordinates):
+        assert(len(self.nodes.shape) == 1)
+        new_node = Node(coordinates)
+        self.nodes = np.append(self.nodes, [new_node])
+        return new_node
+
+    def remove_node(self, node):
+        for n in node.neighbours:
+            node.disconnect(n)
+        index = np.where(self.nodes == node)
+        np.delete(self.nodes, index)
+
     def get_edges(self):
         flattened = list(self.nodes.flatten())
         edges = set()
@@ -72,8 +91,8 @@ class Graph:
         return export
 
 
-def create_grid(shape, coord_scale=1):
-    g = Graph(shape, coord_scale=coord_scale)
+def create_grid(shape, coord_scale=1, dimensions=None):
+    g = Graph(shape, coord_scale=coord_scale, dimensions=dimensions)
     for i, _ in np.ndenumerate(g.nodes):
         connect_to_neighbours(i, g)
     return g

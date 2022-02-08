@@ -2,7 +2,7 @@ def add_tuples(a, b):
     len(a)
     len(b)
     if len(a) == len(b):
-        return tuple([sum(x) for x in zip(a,b)])
+        return tuple([sum(x) for x in zip(a, b)])
     else:
         if len(a) > len(b):
             longest = a
@@ -17,3 +17,8 @@ def add_tuples(a, b):
 
 def multiply_tuple(scalar, tup):
     return tuple([scalar * x for x in tup])
+
+
+def average_tuples(a, b):
+    assert len(a) == len(b)
+    return tuple([sum(x)/2 for x in zip(a, b)])
