@@ -2,7 +2,9 @@ import graph
 from sklearn import datasets
 import som as SOM
 import gng as GNG
-
+import reeb as Reeb
+import numpy as np
+import homology as hm
 
 def test_lines():
     lines = graph.Graph(7, dimensions=2)
@@ -28,6 +30,29 @@ def test_gng():
     gng.graph.to_nx_graph()
 
 
+def test_reeb():
+    x, _ = datasets.make_blobs(random_state=47, center_box=(-5, 5), centers=7)
+    reeb = Reeb.Reeb()
+    g = reeb.map(x, 7, overlap=0.2)
+
+
+def test_column_reduction():
+    x = np.array([
+        [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0],
+        [0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    ])
+    print(x)
+    print(hm.reduce_columns(x))
+
 # Debug tests
 if __name__ == '__main__':
     # x = graph.create_grid((4, 4))
@@ -35,4 +60,6 @@ if __name__ == '__main__':
     # print(x.get_edges())
     # print(x.nodes[(0, 0)].get_nth_neighbours(9))
     # test_lines()
-    test_gng()
+    # test_gng()
+    # test_reeb()
+    test_column_reduction()
