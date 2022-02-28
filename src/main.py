@@ -53,6 +53,17 @@ def test_column_reduction():
     print(x)
     print(hm.reduce_columns(x))
 
+
+def test_ribs():
+    x = np.array([
+        [0, 5, 7, 4],
+        [5, 0, 3, 7],
+        [7, 3, 0, 11],
+        [4, 7, 11, 0]
+    ])
+    print(hm.ribs(x, 3, 7))
+    print(hm.ribs(x, 1, 6))
+
 # Debug tests
 if __name__ == '__main__':
     # x = graph.create_grid((4, 4))
@@ -62,4 +73,5 @@ if __name__ == '__main__':
     # test_lines()
     # test_gng()
     # test_reeb()
-    test_column_reduction()
+    # test_column_reduction()
+    test_ribs()
