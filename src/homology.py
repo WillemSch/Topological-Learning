@@ -1,8 +1,10 @@
 import numpy as np
 from scipy.special import comb
 from itertools import combinations
+from scipy.stats import multivariate_normal as mvn
 
 
+# ================================Column reduction===========================================
 def reduce_columns(filtered_complex_matrix):
     # For easier manipulation of rows, transpose the matrix:
     filtered_complex_matrix = filtered_complex_matrix.T
@@ -27,10 +29,11 @@ def __low(row):
     return indices[-1]
 
 
-def ribs(distance_matrix, dimensions=2, max_radius=np.inf):
+# ================================Rips complex + HBDSCAN===========================================
+def rips(distance_matrix, dimensions=2, max_radius=np.inf, step_size=.1):
     radius = 0
-    step_size = .1
-    filtered_simplexes = np.array([np.zeros(len(distance_matrix[0])) for x in range(distance_matrix.shape[0])])
+    filtered_simplexes = np.array([np.zeros(len(distance_matrix[0])) for _ in range(distance_matrix.shape[0])])
+    labels = [0. for _ in range(distance_matrix.shape[0])]
 
     while not __all_simplexes_found(distance_matrix.shape[0], filtered_simplexes, dimensions) and radius <= max_radius:
         for i in range(distance_matrix.shape[0]):
@@ -42,6 +45,7 @@ def ribs(distance_matrix, dimensions=2, max_radius=np.inf):
                     for simplex in new_simplexes:
                         if distance_matrix[i][j] < 2 * radius and not __simplex_exists(simplex, filtered_simplexes):
                             filtered_simplexes = __add_complex(simplex, filtered_simplexes)
+                            labels.append(radius)
 
                             # If the new simplex adds higher dimensional simplexes add those as well
                             # and again check if higher dimensional simplexes are made
@@ -50,7 +54,7 @@ def ribs(distance_matrix, dimensions=2, max_radius=np.inf):
 
         radius += step_size
 
-    return filtered_simplexes
+    return filtered_simplexes, labels
 
 
 def __add_complex(new_complex, filtered_simplexes):
@@ -68,6 +72,8 @@ def __new_complexes_created(added_complex, filtered_simplexes, max_dimensions):
     else:
         new_complexes = []
         dim = len(added_complex)
+
+        # possible optimisation: filter for simplexes that are within radius
         tuples = __to_index_tuples(filtered_simplexes, dim)
         if tuples.shape[0] > dim:
             for group in combinations(tuples, dim + 1):
@@ -110,3 +116,107 @@ def __to_index_tuples(filtered_simplexes, dimension_filter=None):
             if len(simplex[0]) > 0:
                 simplexes.append(np.insert(simplex[0], 0, index))
     return np.array(simplexes)
+
+
+def hbdscan_rips(distance_matrix, max_dimensions=2, max_radius=np.inf, step_size=.1, k_core=5):
+    altered_distances = np.zeros(distance_matrix.shape)
+    for i in range(distance_matrix.shape[0]):
+        for j in range(i + 1, distance_matrix.shape[0]):
+            i_core = __core_distance(distance_matrix, i, k_core)
+            j_core = __core_distance(distance_matrix, j, k_core)
+            altered_distances[i][j] = altered_distances[j][i] = max(i_core, j_core, distance_matrix[i][j])
+    return rips(altered_distances, dimensions=max_dimensions, max_radius=max_radius, step_size=step_size)
+
+
+def __core_distance(distance_matrix, origin_index, k):
+    return np.max(np.sort(distance_matrix[origin_index])[1:k + 1])
+
+
+# ================================Persistence Image===========================================
+def filtered_complexes_to_tuples(filtered_complexes, labels):
+    tuples = []
+    used = []
+    reduced = reduce_columns(filtered_complexes)
+    for i, col in enumerate(reduced.T):
+        if np.count_nonzero(col) > 0:
+            death = labels[i]
+            j = np.max(np.where(col == 1))
+            birth = labels[j]
+            used.append(i)
+            used.append(j)
+            tuples.append([birth, death])
+
+    tuples = np.array(tuples)
+    for i in [x for x in range(reduced.shape[0]) if x not in used]:
+        print(i)
+        # Empty rows mean a simplex with death value infinity
+        tuples = np.append(tuples, [[labels[i], np.inf]], axis=0)
+    return tuples
+
+
+def transform_to_birth_persistence(birth_death_tuples, infinity_replacement):
+    birth_persistence_tuples = []
+    for (birth, death) in birth_death_tuples:
+        if death == np.inf:
+            persistence = infinity_replacement
+        else:
+            persistence = death - birth
+        birth_persistence_tuples.append((birth, persistence))
+    return np.array(birth_persistence_tuples)
+
+
+class PersistenceImage:
+    def __init__(self, persistence_matrix, labels):
+        self.max_weight = 1
+
+        tuples = filtered_complexes_to_tuples(persistence_matrix, labels)
+        # Replace death = infinity 2x the greatest death value
+        self.points = transform_to_birth_persistence(tuples, infinity_replacement=10)
+        print(self.points)
+
+    def transform(self, resolution, x_min=None, x_max=None, y_min=None, y_max=None, kernel_spread=2):
+        if x_min is None:
+            x_min = 0
+        if x_max is None:
+            x_max = np.max(self.points.T[0]) + .5
+        if y_min is None:
+            y_min = 0
+        if y_max is None:
+            y_max = np.max(self.points.T[1]) + .5
+
+        pixels = self.__to_pixels(resolution, x_min, x_max, y_min, y_max, kernel_spread)
+        return pixels
+
+    def __to_pixels(self, resolution, x_min, x_max, y_min, y_max, kernel_spread):
+        x_range = x_max - x_min
+        y_range = y_max - y_min
+        x_step = x_range / resolution
+        y_step = y_range / resolution
+        x_centering_offset = .5 * x_step
+        y_centering_offset = .5 * y_step
+        pixels = np.zeros((resolution, resolution))
+
+        for i in range(0, resolution):
+            x = x_centering_offset + i * x_step
+            for j in range(0, resolution):
+                y = y_centering_offset + j * y_step
+                pixels[i, j] = self.__density_at_coord(x, y, y_max, kernel_spread)
+
+        return pixels
+
+    def __density_at_coord(self, x, y, max_y, kernel_spread):
+        density = 0
+
+        for point in self.points:
+            # Linear weight function
+            point_weight = self.max_weight * point[1] / max_y
+            density += point_weight * self.gaussian_prob(point, kernel_spread, x, y)
+
+        return density
+
+    def gaussian_prob(self, point, kernel_spread, x, y):
+        return 1/(2 * np.pi * kernel_spread**2) * np.exp(
+            -1 * (((x - point[0])**2 + (y - point[1])**2)/(2 * kernel_spread**2))
+        )
+
+

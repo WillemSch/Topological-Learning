@@ -61,8 +61,23 @@ def test_ribs():
         [7, 3, 0, 11],
         [4, 7, 11, 0]
     ])
-    print(hm.ribs(x, 3, 7))
-    print(hm.ribs(x, 1, 6))
+    # print(hm.rips(x, 3, 7))
+    # print(hm.rips(x, 1, 6))
+    print(hm.hbdscan_rips(x, k_core=5))
+    print(hm.hbdscan_rips(x, k_core=2))
+
+
+def test_persistance_image():
+    x = np.array([
+        [0, 5, 7, 4],
+        [5, 0, 3, 7],
+        [7, 3, 0, 11],
+        [4, 7, 11, 0]
+    ])
+    filtered_complexes, labels = hm.rips(x, 2, 7)
+    print(hm.filtered_complexes_to_tuples(hm.reduce_columns(filtered_complexes), labels))
+    per_img = hm.PersistenceImage(filtered_complexes, labels)
+    print(per_img.transform(resolution=5).T)
 
 # Debug tests
 if __name__ == '__main__':
@@ -74,4 +89,5 @@ if __name__ == '__main__':
     # test_gng()
     # test_reeb()
     # test_column_reduction()
-    test_ribs()
+    # test_ribs()
+    test_persistance_image()

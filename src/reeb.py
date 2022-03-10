@@ -1,19 +1,15 @@
 import numpy
-
 import graph as Graph
-from util import add_tuples
-from util import multiply_tuple
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import numpy as np
-import graph as G
 
 
-def get_preimage_for_interval(data, processed_data, interval):
+def __get_preimage_for_interval(data, processed_data, interval):
     return np.array([data[i] for i, x in enumerate(processed_data) if interval[0] <= x[0] <= interval[1]])
 
 
-def has_overlapping_data(a_data, b_data, threshold=1):
+def __has_overlapping_data(a_data, b_data, threshold=1):
     return len(numpy.intersect1d(a_data.flatten(), b_data.flatten())) >= threshold
 
 
@@ -26,7 +22,6 @@ def second_dimension(x):
 
 
 class Reeb:
-    # TODO: rename function
     # function has to map data to a real number
     def __init__(self, function=second_dimension):
         self.function = function
@@ -45,7 +40,7 @@ class Reeb:
             interval_start = interval_end - interval_size * overlap
             interval_end = interval_start + interval_size
             interval = (interval_start, interval_end)
-            preimage_data = get_preimage_for_interval(data, processed_data, interval)
+            preimage_data = __get_preimage_for_interval(data, processed_data, interval)
 
             # Since silhouette score can only be computed for k >= 2, we say K = 1 is best if no other k gets a
             # silhouette score above .6
@@ -64,7 +59,7 @@ class Reeb:
                 new_node = self.g.add_node((k, (interval[0] + interval[1]) / 2))
                 node_data = np.array([preimage_data[i] for i, x in enumerate(best_cluster_score[0]) if x == k])
                 for old in prev_nodes:
-                    if has_overlapping_data(node_data, old[1]):
+                    if __has_overlapping_data(node_data, old[1]):
                         new_node.connect(old[0])
                 new_nodes.append((new_node, node_data))
             prev_nodes = new_nodes
