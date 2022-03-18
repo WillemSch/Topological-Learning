@@ -1,7 +1,8 @@
+import math
+
 import numpy as np
 from scipy.special import comb
 from itertools import combinations
-from scipy.stats import multivariate_normal as mvn
 
 
 # ================================Column reduction===========================================
@@ -148,7 +149,6 @@ def filtered_complexes_to_tuples(filtered_complexes, labels):
 
     tuples = np.array(tuples)
     for i in [x for x in range(reduced.shape[0]) if x not in used]:
-        print(i)
         # Empty rows mean a simplex with death value infinity
         tuples = np.append(tuples, [[labels[i], np.inf]], axis=0)
     return tuples
@@ -164,15 +164,15 @@ def transform_to_birth_persistence(birth_death_tuples, infinity_replacement):
         birth_persistence_tuples.append((birth, persistence))
     return np.array(birth_persistence_tuples)
 
-
 class PersistenceImage:
     def __init__(self, persistence_matrix, labels):
         self.max_weight = 1
 
         tuples = filtered_complexes_to_tuples(persistence_matrix, labels)
-        # Replace death = infinity 2x the greatest death value
-        self.points = transform_to_birth_persistence(tuples, infinity_replacement=10)
-        print(self.points)
+        # Replace death = infinity with 2x the greatest death value
+        masked_tuples = np.ma.array(tuples, mask=~np.isfinite(tuples)).flatten()
+        max_idx = np.ma.argmax(masked_tuples, fill_value=-np.inf)
+        self.points = transform_to_birth_persistence(tuples, infinity_replacement=2 * tuples.flatten()[max_idx])
 
     def transform(self, resolution, x_min=None, x_max=None, y_min=None, y_max=None, kernel_spread=2):
         if x_min is None:
@@ -219,4 +219,46 @@ class PersistenceImage:
             -1 * (((x - point[0])**2 + (y - point[1])**2)/(2 * kernel_spread**2))
         )
 
+
+# ================================Persistence Landscape===========================================
+def transform_to_mid_half_life(birth_death_tuples, infinity_replacement):
+    mid_half_life_tuples = []
+    for (birth, death) in birth_death_tuples:
+        if death == np.inf:
+            death = infinity_replacement
+        half_life = (death - birth) / 2
+        mid_life = (birth + death) / 2
+        mid_half_life_tuples.append((mid_life, half_life))
+    return np.array(mid_half_life_tuples)
+
+
+class PersistenceLandscape:
+    def __init__(self, persistence_matrix, labels):
+        tuples = filtered_complexes_to_tuples(persistence_matrix, labels)
+        # Replace death = infinity with 2x the greatest death value
+        masked_tuples = np.ma.array(tuples, mask=~np.isfinite(tuples)).flatten()
+        max_idx = np.ma.argmax(masked_tuples, fill_value=-np.inf)
+        self.points = transform_to_mid_half_life(tuples, infinity_replacement=2 * tuples.flatten()[max_idx])
+
+    def transform(self, steps, x_min=None, x_max=None):
+        if x_min is None:
+            x_min = min(self.points, key=lambda x: x[0])[0]
+        if x_max is None:
+            x_max = max(self.points, key=lambda x: x[0])[0]
+
+        result = np.zeros((len(self.points), steps))
+
+        step_size = (x_max - x_min) / steps
+        for i in range(steps):
+            x = step_size * i + x_min
+            for y, point in enumerate(self.points):
+                result[y, i] = self.__get_triangle_height(x, point)
+
+        result = np.flip(np.sort(result, axis=0), axis=0)
+
+        return (x_min, x_max), result
+
+    def __get_triangle_height(self, x, peak):
+        distance = math.fabs(peak[0] - x)
+        return max(0, peak[1] - distance)
 

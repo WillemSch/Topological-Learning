@@ -79,6 +79,18 @@ def test_persistance_image():
     per_img = hm.PersistenceImage(filtered_complexes, labels)
     print(per_img.transform(resolution=5).T)
 
+
+def test_persistance_landscape():
+    x = np.array([
+        [0, 5, 7, 4],
+        [5, 0, 3, 7],
+        [7, 3, 0, 11],
+        [4, 7, 11, 0]
+    ])
+    filtered_complexes, labels = hm.rips(x, 2, 7)
+    per_landscape = hm.PersistenceLandscape(filtered_complexes, labels)
+    print(per_landscape.transform(5))
+
 # Debug tests
 if __name__ == '__main__':
     # x = graph.create_grid((4, 4))
@@ -90,4 +102,6 @@ if __name__ == '__main__':
     # test_reeb()
     # test_column_reduction()
     # test_ribs()
-    test_persistance_image()
+    # test_persistance_image()
+    test_persistance_landscape()
+
