@@ -1,5 +1,4 @@
 import math
-
 import numpy as np
 from scipy.special import comb
 from itertools import combinations
@@ -163,6 +162,7 @@ def transform_to_birth_persistence(birth_death_tuples, infinity_replacement):
             persistence = death - birth
         birth_persistence_tuples.append((birth, persistence))
     return np.array(birth_persistence_tuples)
+
 
 class PersistenceImage:
     def __init__(self, persistence_matrix, labels):

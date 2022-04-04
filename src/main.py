@@ -5,6 +5,9 @@ import gng as GNG
 import reeb as Reeb
 import numpy as np
 import homology as hm
+import util
+import torch
+
 
 def test_lines():
     lines = graph.Graph(7, dimensions=2)
@@ -62,9 +65,9 @@ def test_ribs():
         [4, 7, 11, 0]
     ])
     # print(hm.rips(x, 3, 7))
-    # print(hm.rips(x, 1, 6))
-    print(hm.hbdscan_rips(x, k_core=5))
-    print(hm.hbdscan_rips(x, k_core=2))
+    print(hm.rips(x, 1, 6))
+    # print(hm.hbdscan_rips(x, k_core=5))
+    # print(hm.hbdscan_rips(x, k_core=2))
 
 
 def test_persistance_image():
@@ -91,6 +94,11 @@ def test_persistance_landscape():
     per_landscape = hm.PersistenceLandscape(filtered_complexes, labels)
     print(per_landscape.transform(5))
 
+
+def test_dist():
+    points = [[0., 0.], [0., 1.], [1., 0.]]
+    print(util.create_distance_matrix(points))
+
 # Debug tests
 if __name__ == '__main__':
     # x = graph.create_grid((4, 4))
@@ -103,5 +111,25 @@ if __name__ == '__main__':
     # test_column_reduction()
     # test_ribs()
     # test_persistance_image()
-    test_persistance_landscape()
+    # test_persistance_landscape()
+    test_dist()
 
+    x = np.array([0.,0.,0.,1.,1.,0.])
+    xi = np.array([0.,0.,0.,0.,1.,0.])
+    # print(x.reshape(3,2))
+    # print(np.linalg.norm([x.reshape(3,2), x.reshape(3,2)]))
+
+    # x = np.array([
+    #     [0, 5, 7, 4],
+    #     [5, 0, 3, 7],
+    #     [7, 3, 0, 11],
+    #     [4, 7, 11, 0]
+    # ])
+    # diagram, labels = hm.rips(x, 2, 7)
+    # print(diagram)
+    # non_zeros = np.count_nonzero(diagram, axis=0)
+    # simplex_indices = np.where(diagram.T[np.where(non_zeros == 2)] == 1)[1]
+    # tuples = simplex_indices.reshape((len(simplex_indices) // 2, 2))
+    # res = [x[i[0], i[1]] for i in tuples]
+    # asds = [(1,2), (0,3), (0,1)]
+    # print(x[asds])

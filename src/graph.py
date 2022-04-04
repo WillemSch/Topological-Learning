@@ -1,5 +1,5 @@
 import numpy as np
-import networkx as nx
+# import networkx as nx
 from util import add_tuples
 from util import multiply_tuple
 from util import average_tuples
@@ -80,15 +80,15 @@ class Graph:
                 edges.add((min(i, neighbour_index), max(i, neighbour_index)))
         return edges
 
-    def to_nx_graph(self):
-        export = nx.Graph()
-        added_nodes = []
-        for node in self.nodes.flatten():
-            export.add_node(node, pos=node.coordinates)
-            added_nodes.append(node)
-        for edge in self.get_edges():
-            export.add_edge(added_nodes[edge[0]], added_nodes[edge[1]])
-        return export
+    # def to_nx_graph(self):
+    #     export = nx.Graph()
+    #     added_nodes = []
+    #     for node in self.nodes.flatten():
+    #         export.add_node(node, pos=node.coordinates)
+    #         added_nodes.append(node)
+    #     for edge in self.get_edges():
+    #         export.add_edge(added_nodes[edge[0]], added_nodes[edge[1]])
+    #     return export
 
 
 def create_grid(shape, coord_scale=1, dimensions=None):
