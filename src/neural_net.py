@@ -7,6 +7,30 @@ import numpy as np
 from util import create_distance_matrix
 
 
+class PersLay(nn.Module):
+    def __init__(self, output_dim):
+        super().__init__()
+        self.weight = nn.Sequential(
+            nn.Linear(2, 8),
+            nn.ReLU(),
+            nn.Linear(8, 1),
+            nn.ReLU()
+        )
+
+        self.phi = nn.Sequential(
+            nn.Linear(2, output_dim//2),
+            nn.ReLU(),
+            nn.Linear(output_dim//2, output_dim),
+            nn.ReLU()
+        )
+
+    def forward(self, x):
+        weight = self.weight.forward(x)
+        out = weight * self.phi.forward(x)
+        out = torch.sum(out)
+        return out
+
+
 class TopologicalAutoEncoder(nn.Module):
     def __init__(self, **kwargs):
         # Input_shape is tuple with: (Amount of simplices, input dimensions)

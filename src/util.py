@@ -33,5 +33,5 @@ def create_distance_matrix(points):
     dist = torch.zeros((len(points), len(points)))
     for i in range(len(points)):
         for j in range(i + 1, len(points)):
-            dist[i, j] = dist[j, i] = torch.linalg.norm(torch.stack([points[i], points[j]]))
+            dist[i, j] = dist[j, i] = torch.linalg.norm(points[i] - points[j])
     return dist

@@ -1,7 +1,7 @@
 import torch as nn
 
 class PersLay(nn.Module):
-    def __init__(self):
+    def __init__(self, output_dim):
         self.weight = nn.Linear
         self.phi = nn.Linear
 

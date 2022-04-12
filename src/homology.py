@@ -36,6 +36,7 @@ def rips(distance_matrix, dimensions=2, max_radius=np.inf, step_size=.1):
     labels = [0. for _ in range(distance_matrix.shape[0])]
 
     while not __all_simplexes_found(distance_matrix.shape[0], filtered_simplexes, dimensions) and radius <= max_radius:
+        print(radius)
         for i in range(distance_matrix.shape[0]):
             for j in range(i + 1, distance_matrix.shape[0]):
                 new_simplexes = [[i, j]]
@@ -102,6 +103,7 @@ def __all_simplexes_found(zero_simplex_count, filtered_simplexes, max_dimensions
     max_c = 0
     for d in range(max_dimensions + 1):
         max_c += comb(zero_simplex_count, d + 1)
+    print(f'Max = {max_c}, found  = {len(filtered_simplexes)}')
     return max_c == filtered_simplexes.shape[0]
 
 

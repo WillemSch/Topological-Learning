@@ -65,7 +65,7 @@ def test_ribs():
         [4, 7, 11, 0]
     ])
     # print(hm.rips(x, 3, 7))
-    print(hm.rips(x, 1, 6))
+    print(hm.rips(x, 2))
     # print(hm.hbdscan_rips(x, k_core=5))
     # print(hm.hbdscan_rips(x, k_core=2))
 
@@ -113,9 +113,9 @@ if __name__ == '__main__':
     # test_persistance_image()
     # test_persistance_landscape()
     test_dist()
-
-    x = np.array([0.,0.,0.,1.,1.,0.])
-    xi = np.array([0.,0.,0.,0.,1.,0.])
+    #
+    # x = np.array([0.,0.,0.,1.,1.,0.])
+    # xi = np.array([0.,0.,0.,0.,1.,0.])
     # print(x.reshape(3,2))
     # print(np.linalg.norm([x.reshape(3,2), x.reshape(3,2)]))
 
