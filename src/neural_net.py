@@ -82,9 +82,6 @@ class TopAELoss(nn.Module):
 
     def forward(self, input, latent, output, point_count):
         # assert(dimensions == 1, "This implementation only supports 1 dimensional homology")
-
-        # flattened layers into dimensional vectors
-        # Select "important" simplices
         self.relevant_input = self.__relevant_points(rips(input, dimensions=1)[0])
         self.relevant_latent = self.__relevant_points(rips(latent, dimensions=1)[0])
 

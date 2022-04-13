@@ -6,15 +6,34 @@ from util import average_tuples
 
 
 class GNG:
+    """A class to apply the Growing-Neural-Gas algorithm over a given dataset, generating a Graph.
+    """
+
     def __init__(self, data):
+        """Initializes the GNG class and generates a Graph to start the algorithm with.
+
+        :param data: A list of coordinate tuples of data-points
+        """
+
+        # Keep the same amount of dimensions in the graph as the data-set has
         self.graph = graph.create_grid(2, dimensions=len(data.shape))
         self.data = data
 
     def train(self, iterations, learning_rate=0.1, age_threshold=100, node_creation_interval=100,
               new_node_error_discount=.5, step_error_discount=.1):
+        """Applies the self-organising-map algorithm over a given dataset and graph. Returns a graph after running the algorithm. NOTE: Running train() multiple times will continue updating the same graph, to restart fresh create a new GNG instance.
+
+        :param iterations: The amount of iterations to run the GNG algorithm
+        :param learning_rate: Optional, default = 0.1 - The rate at which coordinates of nodes are updated towards the learned direction
+        :param age_threshold: Optional, default = 100 - The maximum age an edge can reach before being removed.
+        :param node_creation_interval: Optional, default = 100 - Defines at what amount of steps a new node should be added.
+        :param new_node_error_discount: Optional default = 0.5 - The discount value for the error when a new node is created.
+        :param step_error_discount: Optional default = 0.1 - The discount value for the error which is subtracted from the errors each step.
+        :return: The Graph of the GNG class after running the GNG algorithm.
+        """
         flattened = self.graph.nodes.flatten()
         error = {n: 0 for n in flattened}
-        edges = {(flattened[edge[0]], flattened[edge[1]]): 0 for edge in self.graph.get_edges()}
+        edges = {(flattened[edge[0]], flattened[edge[1]]): 0 for edge in self.graph.get_edges()} # Keeps track of the age of edges
         for count in range(iterations):
             for i_x, x in enumerate(self.data):
                 i, j = self.__find_n_closest(x, n=2)
@@ -83,8 +102,15 @@ class GNG:
                 # Decrease all errors
                 for n in error:
                     error[n] -= step_error_discount
+        return self.graph
 
     def __find_n_closest(self, x, n):
+        """Find the closest N nodes to a given data-point in the graph of the GNG class
+
+        :param x: A tuple of coordinates to find the closest nodes to.
+        :param n: The amount of Nodes to look for.
+        :return: A list of tuples of the closest N nodes. Tuples of form: (Node index, Distance to x)
+        """
         dist = [(-(i + 1), np.inf) for i in range(n)]
         for index, n in enumerate(self.graph.nodes.flatten()):
             neg = multiply_tuple(-1, x)
