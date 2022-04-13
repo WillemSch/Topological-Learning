@@ -8,7 +8,14 @@ from util import create_distance_matrix
 
 
 class PersLay(nn.Module):
+    """A Pytorch implementation of the PersLay. This implementation will use a small fully connected network as weight function, and a different small fully connected network as phi.
+    """
+
     def __init__(self, output_dim):
+        """Initializes The persLay class, with it the weight- and phi network
+
+        :param output_dim: The amount of output nodes of the PersLay.
+        """
         super().__init__()
         self.weight = nn.Sequential(
             nn.Linear(2, 8),
@@ -25,6 +32,11 @@ class PersLay(nn.Module):
         )
 
     def forward(self, x):
+        """Passes a dataset Tensor through the PersLay.
+
+        :param x: A Tensor containing the data.
+        :return: A Tensor containing the output of this PersLay.
+        """
         weight = self.weight.forward(x)
         out = weight * self.phi.forward(x)
         out = torch.sum(out)
@@ -32,7 +44,16 @@ class PersLay(nn.Module):
 
 
 class TopologicalAutoEncoder(nn.Module):
+    """Implement a Topological AutoEncoder in pytorch.
+    """
+
     def __init__(self, **kwargs):
+        """Initializes a topological autoencoder with 4 fully connected layers (2 for encoder, 2 for decoder).
+
+        :param input_shape: Tuple containing: (Amount of simplices, input dimensions)
+        :param latent_space_size: An integer stating the amount of dimensions in the latent space.
+        """
+
         # Input_shape is tuple with: (Amount of simplices, input dimensions)
         # Latent_space_size is: latent dimensions
 
@@ -65,6 +86,11 @@ class TopologicalAutoEncoder(nn.Module):
         )
 
     def forward(self, x):
+        """Passes a dataset Tensor through the PersLay.
+
+        :param x: A Tensor containing the data.
+        :return: A Tensor containing the output of the AutoEncoder, and a Tensor containing the output at the latent space.
+        """
         out = self.act(self.lin_1(x))
         latent = self.act(self.lin_2(out))
         out = self.act(self.lin_3(latent))
@@ -73,7 +99,12 @@ class TopologicalAutoEncoder(nn.Module):
 
 
 class TopAELoss(nn.Module):
+    """A pytorch implementation of the Topological AutoEncoder loss function.
+    """
+
     def __init__(self):
+        """Initializes the loss function.
+        """
         super().__init__()
         self.relevant_input = None
         self.relevant_latent = None
@@ -81,6 +112,15 @@ class TopAELoss(nn.Module):
         self.A_latent = None
 
     def forward(self, input, latent, output, point_count):
+        """Calculates the loss for a given input and its corresponding latent-space, and output. This is a combination of the reconstruction loss between input and output, and the homology loss between input and latent space.
+
+        :param input: The input of the AutoEncoder.
+        :param latent: The latent space of the AutoEncoder when fed with input.
+        :param output: The output of the AutoEncoder when fed with input
+        :param point_count: The amount of points in the diagram that is the input.
+        :return: A Tensor with the loss of the AutoEncoder.
+        """
+
         # assert(dimensions == 1, "This implementation only supports 1 dimensional homology")
         self.relevant_input = self.__relevant_points(rips(input, dimensions=1)[0])
         self.relevant_latent = self.__relevant_points(rips(latent, dimensions=1)[0])
@@ -95,11 +135,23 @@ class TopAELoss(nn.Module):
 
         return loss_reconstruction + loss_x + loss_z
 
-    def __relevant_distances(self, relevent_indices, distance_matrix):
-        return np.array([distance_matrix[i[0], i[1]] for i in relevent_indices])
+    def __relevant_distances(self, relevant_indices, distance_matrix):
+        """Get a list of relevant distances from a distance_matrix with pre-determined relevant simplexes.
+
+        :param relevant_indices: The indices of the relevant simplexes.
+        :param distance_matrix: A distance matrix of all simplexes.
+        :return: Numpy array of distances between the relevant simplexes.
+        """
+        return np.array([distance_matrix[i[0], i[1]] for i in relevant_indices])
 
     def __relevant_points(self, diagram):
+        """Find the relevant simplexes in a persistence diagram. (Only works for 1 dimensional homology at the moment)
+
+        :param diagram: A persistence diagram without column reduction applied.
+        :return: A list of index tuples of the relevant simplexes.
+        """
         non_zeros = np.count_nonzero(diagram, axis=0)
+        # All edges are "destroyers" of 0 dimensional simplexes, and are therefore relevant
         simplex_indices = torch.where(diagram.T[np.where(non_zeros == 2)] == 1)[1]
         index_tuples = simplex_indices.reshape((len(simplex_indices) // 2, 2))
         return index_tuples
