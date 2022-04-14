@@ -108,11 +108,11 @@ if __name__ == '__main__':
     # test_lines()
     # test_gng()
     # test_reeb()
-    # test_column_reduction()
+    test_column_reduction()
     # test_ribs()
     # test_persistance_image()
     # test_persistance_landscape()
-    test_dist()
+    # test_dist()
     #
     # x = np.array([0.,0.,0.,1.,1.,0.])
     # xi = np.array([0.,0.,0.,0.,1.,0.])
@@ -133,3 +133,6 @@ if __name__ == '__main__':
     # res = [x[i[0], i[1]] for i in tuples]
     # asds = [(1,2), (0,3), (0,1)]
     # print(x[asds])
+    # row = np.array([0,0,1,0,1,0,0,0,1])
+    # indices = np.argwhere(row == 1)
+    # print(indices[-1])
