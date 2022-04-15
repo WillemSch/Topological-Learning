@@ -11,7 +11,7 @@ def reduce_columns(filtered_complex_matrix):
     :param filtered_complex_matrix: A filtered complex matrix. (2 dimensional numpy array)
     :return: A column-reduced filtered complex matrix
     """
-    # For easier manipulation of rows, transpose the matrix:
+    # For easier manipulation of columns, transpose the matrix:
     filtered_complex_matrix = filtered_complex_matrix.T
     for j in range(1, len(filtered_complex_matrix)):
         j_prime = __find_prev_row_same_low(j, filtered_complex_matrix)
@@ -154,7 +154,6 @@ def __all_simplexes_found(zero_simplex_count, filtered_simplexes, max_dimensions
     max_c = 0
     for d in range(max_dimensions + 1):
         max_c += comb(zero_simplex_count, d + 1)
-    print(f'Max = {max_c}, found  = {len(filtered_simplexes)}')
     return max_c == filtered_simplexes.shape[0]
 
 
@@ -316,7 +315,7 @@ class PersistenceImage:
             x = x_centering_offset + i * x_step
             for j in range(0, resolution):
                 y = y_centering_offset + j * y_step
-                pixels[i, j] = self.__density_at_coord(x, y, y_max, kernel_spread)
+                pixels[j, i] = self.__density_at_coord(x, y, y_max, kernel_spread)
 
         return pixels
 

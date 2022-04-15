@@ -12,22 +12,22 @@ class PersLay(nn.Module):
     """
 
     def __init__(self, output_dim):
-        """Initializes The persLay class, with it the weight- and phi network
+        """Initializes The persLay class, with it the weight- and phi network. Note that the networks use convolutional layers calculate the weights and phis for all points at once.
 
         :param output_dim: The amount of output nodes of the PersLay.
         """
         super().__init__()
         self.weight = nn.Sequential(
-            nn.Linear(2, 8),
+            nn.Conv2d(kernel_size=(1, 2), stride=(1, 2), out_channels=8, in_channels=1),
             nn.ReLU(),
-            nn.Linear(8, 1),
+            nn.Conv2d(kernel_size=(1, 1), stride=(1, 1), out_channels=1, in_channels=8),
             nn.ReLU()
         )
 
         self.phi = nn.Sequential(
-            nn.Linear(2, output_dim//2),
+            nn.Conv2d(kernel_size=(1, 2), stride=(1, 2), out_channels=output_dim//2, in_channels=1),
             nn.ReLU(),
-            nn.Linear(output_dim//2, output_dim),
+            nn.Conv2d(kernel_size=(1, 1), stride=(1, 1), out_channels=output_dim, in_channels=output_dim//2),
             nn.ReLU()
         )
 
@@ -37,9 +37,11 @@ class PersLay(nn.Module):
         :param x: A Tensor containing the data.
         :return: A Tensor containing the output of this PersLay.
         """
-        weight = self.weight.forward(x)
-        out = weight * self.phi.forward(x)
-        out = torch.sum(out)
+        weight = self.weight.forward(x.to(dtype=torch.float))
+        phi = torch.swapaxes(self.phi.forward(x.to(dtype=torch.float)), 1, 3)
+        weight = weight.repeat(1, 1, 1, phi.shape[3])
+        out = weight * phi
+        out = torch.squeeze(torch.sum(out, dim=2))
         return out
 
 

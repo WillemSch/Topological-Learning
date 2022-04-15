@@ -5,28 +5,6 @@ from sklearn.metrics import silhouette_score
 import numpy as np
 
 
-def __get_preimage_for_interval(data, processed_data, interval):
-    """Returns the preimage of a processed data-set over a given interval.
-
-    :param data: List of data-points; The original dataset.
-    :param processed_data: List of data-points from the original dataset processed by some function.
-    :param interval: Tuple indicating the interval to get the preimage over. Inclusive for both low and high if interval = (low, high).
-    :return: List of data-points from the original dataset that match with processed data-points in a given interval.
-    """
-    return np.array([data[i] for i, x in enumerate(processed_data) if interval[0] <= x[0] <= interval[1]])
-
-
-def __has_overlapping_data(a_data, b_data, threshold=1):
-    """Check if there is a non-empty intersection between 2 data sets.
-
-    :param a_data: NdArray of points.
-    :param b_data: NdArray of points.
-    :param threshold: Optional, default 1 - The minimum amount of overlapping points.
-    :return: True if the intersection between a anb b is bigger or equals to the threshold, False otherwise.
-    """
-    return len(numpy.intersect1d(a_data.flatten(), b_data.flatten())) >= threshold
-
-
 def first_dimension(x):
     """Get the value of the first dimension of x. Can be used as projection function for reeb graphs.
 
@@ -78,7 +56,7 @@ class Reeb:
             interval_start = interval_end - interval_size * overlap
             interval_end = interval_start + interval_size
             interval = (interval_start, interval_end)
-            preimage_data = __get_preimage_for_interval(data, processed_data, interval)
+            preimage_data = self.__get_preimage_for_interval(data, processed_data, interval)
 
             # Since silhouette score can only be computed for k >= 2, we say K = 1 is best if no other k gets a
             # silhouette score above .6
@@ -97,13 +75,33 @@ class Reeb:
                 new_node = self.g.add_node((k, (interval[0] + interval[1]) / 2))
                 node_data = np.array([preimage_data[i] for i, x in enumerate(best_cluster_score[0]) if x == k])
                 for old in prev_nodes:
-                    if __has_overlapping_data(node_data, old[1]):
+                    if self.__has_overlapping_data(node_data, old[1]):
                         new_node.connect(old[0])
                 new_nodes.append((new_node, node_data))
             prev_nodes = new_nodes
 
         self.rearrange_nodes()
         return self.g
+
+    def __get_preimage_for_interval(self, data, processed_data, interval):
+        """Returns the preimage of a processed data-set over a given interval.
+
+        :param data: List of data-points; The original dataset.
+        :param processed_data: List of data-points from the original dataset processed by some function.
+        :param interval: Tuple indicating the interval to get the preimage over. Inclusive for both low and high if interval = (low, high).
+        :return: List of data-points from the original dataset that match with processed data-points in a given interval.
+        """
+        return np.array([data[i] for i, x in enumerate(processed_data) if interval[0] <= x[0] <= interval[1]])
+
+    def __has_overlapping_data(self, a_data, b_data, threshold=1):
+        """Check if there is a non-empty intersection between 2 data sets.
+
+        :param a_data: NdArray of points.
+        :param b_data: NdArray of points.
+        :param threshold: Optional, default 1 - The minimum amount of overlapping points.
+        :return: True if the intersection between a anb b is bigger or equals to the threshold, False otherwise.
+        """
+        return len(numpy.intersect1d(a_data.flatten(), b_data.flatten())) >= threshold
 
     def rearrange_nodes(self):
         """Rearrange the nodes in the graph of this instance to make it a bit easier to look at when visualizing.
