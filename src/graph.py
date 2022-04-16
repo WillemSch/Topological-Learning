@@ -5,6 +5,8 @@ from util import multiply_tuple
 
 class Node:
     """A class for Nodes in a Graph, keeps track of neighbours, and coordinates.
+
+    :param coordinates: The coordinates of this Node, should be a tuple or list of any dimension.
     """
 
     def __init__(self, coordinates):
@@ -84,6 +86,10 @@ class Node:
 
 class Graph:
     """A class for a Graph keeps track of a collection of nodes.
+
+    :param shape: The shape of the collection of Nodes (Tuple).
+    :param dimensions: Optional, default None - The amount of dimensions a node uses for its coordinates. If none is given dimensions = len(shape).
+    :param coord_scale: Optional, default 1 - Nodes are initialized with unique coordinates based on their index, coord_scale is a scalar for these initial coordinates.
     """
 
     def __init__(self, shape, dimensions=None, coord_scale=1):
