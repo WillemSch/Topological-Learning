@@ -122,7 +122,7 @@ class Graph:
         """Removes a given node from the graph.
 
         :param node: The Node to be removed.
-        :return: None/
+        :return: None
         """
         for n in node.neighbours:
             node.disconnect(n)
@@ -162,7 +162,7 @@ def connect_to_neighbours(index, graph):
 
     :param index: The index of the node that should be connected to its neighbouring nodes.
     :param graph: The graph containing the nodes.
-    :return: None.
+    :return: None
     """
     node = graph.nodes[index]
     for i, d in enumerate(index):
