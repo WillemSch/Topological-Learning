@@ -7,6 +7,8 @@ from util import average_tuples
 
 class GNG:
     """A class to apply the Growing-Neural-Gas algorithm over a given dataset, generating a Graph.
+
+    :param data: A list of coordinate tuples of data-points
     """
 
     def __init__(self, data):

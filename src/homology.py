@@ -253,6 +253,9 @@ def transform_to_birth_persistence(birth_death_tuples, infinity_replacement):
 
 class PersistenceImage:
     """A class to produce Persistence Images from a filtered complex matrix.
+
+    :param filtered_complexes: A filtered complex matrix.
+    :param labels: The birth-labels corresponding to the filtered complex matrix.
     """
 
     def __init__(self, filtered_complexes, labels):
@@ -371,6 +374,9 @@ def transform_to_mid_half_life(birth_death_tuples, infinity_replacement):
 
 class PersistenceLandscape:
     """A class to produce Persistence Images from a filtered complex matrix.
+
+    :param filtered_complexes: A filtered complex matrix.
+    :param labels: The birth-labels corresponding to the filtered complex matrix.
     """
 
     def __init__(self, filtered_complexes, labels):

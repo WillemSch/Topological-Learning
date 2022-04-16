@@ -18,6 +18,8 @@ def simple_neighbourhood_function(depth):
 
 class SOM:
     """A class to apply the Self-Organising-Map algorithm over a given graph.
+
+    :param graph: The graph to apply the Self-Organising-Map algorithm over, (type Graph from this package)
     """
 
     def __init__(self, graph):

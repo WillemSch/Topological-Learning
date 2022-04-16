@@ -25,6 +25,8 @@ def second_dimension(x):
 
 class Reeb:
     """A class to generate a Reeb graph for a given dataset and projection function
+
+    :param function: Optional, default second_dimension() - A function that maps a datapoint to a number.
     """
 
     # function has to map data to a real number

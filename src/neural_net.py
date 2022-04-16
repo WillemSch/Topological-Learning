@@ -9,6 +9,8 @@ from util import create_distance_matrix
 
 class PersLay(nn.Module):
     """A Pytorch implementation of the PersLay. This implementation will use a small fully connected network as weight function, and a different small fully connected network as phi.
+
+    :param output_dim: The amount of output nodes of the PersLay.
     """
 
     def __init__(self, output_dim):
@@ -47,6 +49,9 @@ class PersLay(nn.Module):
 
 class TopologicalAutoEncoder(nn.Module):
     """Implement a Topological AutoEncoder in pytorch.
+
+    :param input_shape: Tuple containing: (Amount of simplices, input dimensions)
+    :param latent_space_size: An integer stating the amount of dimensions in the latent space.
     """
 
     def __init__(self, **kwargs):

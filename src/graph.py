@@ -138,7 +138,7 @@ class Graph:
 
 
 def create_grid(shape, coord_scale=1, dimensions=None):
-    """Create a square-grid graph of a given shape. Where all nodes that are next to each other are connected.
+    """ Create a square-grid graph of a given shape. Where all nodes that are next to each other are connected.
 
     :param shape: The shape of the grid graph to be created.
     :param coord_scale: Optional, default 1 - Nodes are initialized with unique coordinates based on their index, coord_scale is a scalar for these initial coordinates.
