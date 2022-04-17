@@ -11,7 +11,7 @@ class Node:
 
     def __init__(self, coordinates):
         """Initializes the Node class. Sets its coordinates to the given coordinates, and sets its neighbours to an
-            empty list.
+        empty list.
 
         :param coordinates: The coordinates of this Node, should be a tuple or list of any dimension.
         """
@@ -46,7 +46,7 @@ class Node:
 
     def connect(self, other):
         """Connect this node to the other Node. Will add other to this node's neighbourhood, and this node to the
-            other's neighbourhood.
+        other's neighbourhood.
 
         :param other: The Node to connect this node to.
         :return: None
@@ -151,7 +151,7 @@ class Graph:
 
 
 def create_grid(shape, coord_scale=1, dimensions=None):
-    """ Create a square-grid graph of a given shape. Where all nodes that are next to each other are connected.
+    """Create a square-grid graph of a given shape. Where all nodes that are next to each other are connected.
 
     :param shape: The shape of the grid graph to be created.
     :param coord_scale: Optional, default 1 - Nodes are initialized with unique coordinates based on their index,
@@ -168,7 +168,7 @@ def create_grid(shape, coord_scale=1, dimensions=None):
 
 def connect_to_neighbours(index, graph):
     """Used to create a square-grid graph. Connects a node to all its direct neighbours in all dimensions based on the
-        index of nodes.
+    index of nodes.
 
     :param index: The index of the node that should be connected to its neighbouring nodes.
     :param graph: The graph containing the nodes.

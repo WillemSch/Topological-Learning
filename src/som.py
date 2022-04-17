@@ -31,7 +31,7 @@ class SOM:
 
     def fit(self, data, neighbourhood_function=None, neighbourhood_depth=2, learning_rate=0.1, iterations=10):
         """Applies the self-organising-map algorithm over a given dataset and graph. The initially given graph will be
-            altered after running fit()
+        altered after running fit()
 
         :param data: List of coordinate tuples.
         :param neighbourhood_function: Optional, default = None - The neighbourhood weight function, takes in depth

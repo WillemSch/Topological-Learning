@@ -24,8 +24,8 @@ class GNG:
     def train(self, iterations, learning_rate=0.1, age_threshold=100, node_creation_interval=100,
               new_node_error_discount=.5, step_error_discount=.1):
         """Applies the self-organising-map algorithm over a given dataset and graph. Returns a graph after running the
-            algorithm. NOTE: Running train() multiple times will continue updating the same graph, to restart fresh
-            create a new GNG instance.
+        algorithm. NOTE: Running train() multiple times will continue updating the same graph, to restart fresh
+        create a new GNG instance.
 
         :param iterations: The amount of iterations to run the GNG algorithm
         :param learning_rate: Optional, default = 0.1 - The rate at which coordinates of nodes are updated towards the

@@ -23,7 +23,7 @@ def reduce_columns(filtered_complex_matrix):
 
 def __find_prev_row_same_low(j, filtered_complex_matrix):
     """Used in the reduce_columns function. Find a previous row that has its last '1'-entry on the same index as the row
-        at the given index.
+    at the given index.
 
     :param j: The index of the row to compare to.
     :param filtered_complex_matrix: The filtered complex matrix
@@ -49,7 +49,7 @@ def __low(row):
 # ================================Rips complex + HBDSCAN===========================================
 def rips(distance_matrix, dimensions=2, max_radius=np.inf, step_size=.1):
     """Applies the rips algorithm over a given distance matrix to produce a filtered simplicial complex. This algorithm
-        terminates either when all simplexes are found, or when the maximum radius is reached.
+    terminates either when all simplexes are found, or when the maximum radius is reached.
 
     :param distance_matrix: A distance matrix of a set of points
     :param dimensions: Optional, default 2 - The upper bound of dimensions for simplexes created.
@@ -147,7 +147,7 @@ def __simplex_exists(simplex, filtered_simplexes):
 
 def __all_simplexes_found(zero_simplex_count, filtered_simplexes, max_dimensions):
     """Checks whether all simplexes are fount in a filtered simplex matrix, given an upper bound on dimensionality of
-        simplexes.
+    simplexes.
 
     :param zero_simplex_count: The amount of 0-simplexes.
     :param filtered_simplexes: The filtered simplex matrix.
@@ -182,7 +182,7 @@ def __to_index_tuples(filtered_simplexes, dimension_filter=None):
 
 def hbdscan_rips(distance_matrix, max_dimensions=2, max_radius=np.inf, step_size=.1, k_core=5):
     """A simple wrapper function that applies HBDSCAN over a distance matrix before passing it through the rips()
-        function.
+    function.
 
     :param distance_matrix: A distance matrix of a set of points.
     :param max_dimensions: Optional, default 2 - The upper bound of dimensions for simplexes created.
@@ -266,7 +266,7 @@ class PersistenceImage:
 
     def __init__(self, filtered_complexes, labels):
         """Initializes the PersistenceImage class. Pre-processes the filtered complex matrix and labels so a persistence
-            image can be generated.
+        image can be generated.
 
         :param filtered_complexes: A filtered complex matrix.
         :param labels: The birth-labels corresponding to the filtered complex matrix.

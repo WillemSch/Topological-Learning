@@ -9,15 +9,15 @@ from util import create_distance_matrix
 
 class PersLay(nn.Module):
     """A Pytorch implementation of the PersLay. This implementation will use a small fully connected network as weight
-        function, and a different small fully connected network as phi. This is used to vectorize a persistence diagram
-        in a neural network.
+    function, and a different small fully connected network as phi. This is used to vectorize a persistence diagram
+    in a neural network.
 
     :param output_dim: The amount of output nodes of the PersLay.
     """
 
     def __init__(self, output_dim):
         """Initializes The persLay class, with it the weight- and phi network. Note that the networks use convolutional
-            layers calculate the weights and phis for all points at once.
+        layers calculate the weights and phis for all points at once.
 
         :param output_dim: The amount of output nodes of the PersLay.
         """
@@ -124,7 +124,7 @@ class TopAELoss(nn.Module):
 
     def forward(self, input, latent, output, point_count):
         """Calculates the loss for a given input and its corresponding latent-space, and output. This is a combination
-            of the reconstruction loss between input and output, and the homology loss between input and latent space.
+        of the reconstruction loss between input and output, and the homology loss between input and latent space.
 
         :param input: The input of the AutoEncoder.
         :param latent: The latent space of the AutoEncoder when fed with input.

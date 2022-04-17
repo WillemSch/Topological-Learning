@@ -141,7 +141,7 @@ class Reeb:
 
     def __add_node_to_graph(self, node, graph, to_be_processed):
         """Adds a node to a dictionary graph object. Used by rearrange_nodes(). When run the node is removed from the
-            to_be_processed list.
+        to_be_processed list.
 
         :param node: The node to add to the graph.
         :param graph: A dictionary object with coordinates as key, and a list of nodes as value.
