@@ -8,7 +8,7 @@ from util import create_distance_matrix
 
 
 class PersLay(nn.Module):
-    """A Pytorch implementation of the PersLay. This implementation will use a small fully connected network as weight function, and a different small fully connected network as phi.
+    """A Pytorch implementation of the PersLay. This implementation will use a small fully connected network as weight function, and a different small fully connected network as phi. This is used to vectorize a persistence diagram in a neural network.
 
     :param output_dim: The amount of output nodes of the PersLay.
     """
