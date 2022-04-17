@@ -7,7 +7,7 @@ src
    gng
    graph
    homology
-   neural_net
+   neuralNet
    reeb
    som
    util

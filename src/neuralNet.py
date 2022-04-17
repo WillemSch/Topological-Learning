@@ -19,6 +19,7 @@ class PersLay(nn.Module):
         :param output_dim: The amount of output nodes of the PersLay.
         """
         super().__init__()
+        # Use convolutional layers to act as fully connected layers for each (birth, death) pair simultainiously
         self.weight = nn.Sequential(
             nn.Conv2d(kernel_size=(1, 2), stride=(1, 2), out_channels=8, in_channels=1),
             nn.ReLU(),
