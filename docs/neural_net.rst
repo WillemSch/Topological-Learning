@@ -1,5 +1,5 @@
-neural\_net module
-==================
+neural net module
+=================
 
 .. automodule:: neural_net
    :members:
