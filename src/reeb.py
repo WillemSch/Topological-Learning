@@ -44,7 +44,8 @@ class Reeb:
         :param data: A list of datapoints before they are passed through the projection function.
         :param intervals: The amount of intervals the reeb-algorithm will divide the range of points in.
         :param overlap: Optional, default 0.2 - The overlap of the intervals, in percentages (1 = 100%, .5 = 50%, etc.)
-        :param max_k: The maximum amount of clusters per interval that are tested. Limits nodes per interval to the range 1 to max_k.
+        :param max_k: The maximum amount of clusters per interval that are tested. Limits nodes per interval to the
+            range 1 to max_k.
         :return: A Reeb-graph fitted to the given dataset with given parameters.
         """
         processed_data = [[self.function(x)] for x in data]
@@ -90,7 +91,8 @@ class Reeb:
 
         :param data: List of data-points; The original dataset.
         :param processed_data: List of data-points from the original dataset processed by some function.
-        :param interval: Tuple indicating the interval to get the preimage over. Inclusive for both low and high if interval = (low, high).
+        :param interval: Tuple indicating the interval to get the preimage over. Inclusive for both low and high if
+            interval = (low, high).
         :return: List of data-points from the original dataset that match with processed data-points in a given interval.
         """
         return np.array([data[i] for i, x in enumerate(processed_data) if interval[0] <= x[0] <= interval[1]])
@@ -138,7 +140,8 @@ class Reeb:
             prev_width = graph_offset + width
 
     def __add_node_to_graph(self, node, graph, to_be_processed):
-        """Adds a node to a dictionary graph object. Used by rearrange_nodes(). When run the node is removed from the to_be_processed list.
+        """Adds a node to a dictionary graph object. Used by rearrange_nodes(). When run the node is removed from the
+            to_be_processed list.
 
         :param node: The node to add to the graph.
         :param graph: A dictionary object with coordinates as key, and a list of nodes as value.

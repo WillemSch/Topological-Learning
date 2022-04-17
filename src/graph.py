@@ -10,7 +10,8 @@ class Node:
     """
 
     def __init__(self, coordinates):
-        """Initializes the Node class. Sets its coordinates to the given coordinates, and sets its neighbours to an empty list.
+        """Initializes the Node class. Sets its coordinates to the given coordinates, and sets its neighbours to an
+            empty list.
 
         :param coordinates: The coordinates of this Node, should be a tuple or list of any dimension.
         """
@@ -36,14 +37,16 @@ class Node:
         """Overrides the __eq__() function (Equals).
 
         :param other: The object to compate to.
-        :return: True if other is of class Node with the same __key, False if other is of class Node with different __key, otherwise throws NotImplemented.
+        :return: True if other is of class Node with the same __key, False if other is of class Node with different
+            __key, otherwise throws NotImplemented.
         """
         if isinstance(other, Node):
             return self.__key() == other.__key()
         return NotImplemented
 
     def connect(self, other):
-        """Connect this node to the other Node. Will add other to this node's neighbourhood, and this node to the other's neighbourhood.
+        """Connect this node to the other Node. Will add other to this node's neighbourhood, and this node to the
+            other's neighbourhood.
 
         :param other: The Node to connect this node to.
         :return: None
@@ -88,16 +91,20 @@ class Graph:
     """A class for a Graph keeps track of a collection of nodes.
 
     :param shape: The shape of the collection of Nodes (Tuple).
-    :param dimensions: Optional, default None - The amount of dimensions a node uses for its coordinates. If none is given dimensions = len(shape).
-    :param coord_scale: Optional, default 1 - Nodes are initialized with unique coordinates based on their index, coord_scale is a scalar for these initial coordinates.
+    :param dimensions: Optional, default None - The amount of dimensions a node uses for its coordinates. If none is
+        given dimensions = len(shape).
+    :param coord_scale: Optional, default 1 - Nodes are initialized with unique coordinates based on their index,
+        coord_scale is a scalar for these initial coordinates.
     """
 
     def __init__(self, shape, dimensions=None, coord_scale=1):
         """Initializes the Graph class.
 
         :param shape: The shape of the collection of Nodes (Tuple).
-        :param dimensions: Optional, default None - The amount of dimensions a node uses for its coordinates. If none is given dimensions = len(shape).
-        :param coord_scale: Optional, default 1 - Nodes are initialized with unique coordinates based on their index, coord_scale is a scalar for these initial coordinates.
+        :param dimensions: Optional, default None - The amount of dimensions a node uses for its coordinates. If none is
+            given dimensions = len(shape).
+        :param coord_scale: Optional, default 1 - Nodes are initialized with unique coordinates based on their index,
+            coord_scale is a scalar for these initial coordinates.
         """
         if dimensions is None:
             dimensions = len(shape)
@@ -147,8 +154,10 @@ def create_grid(shape, coord_scale=1, dimensions=None):
     """ Create a square-grid graph of a given shape. Where all nodes that are next to each other are connected.
 
     :param shape: The shape of the grid graph to be created.
-    :param coord_scale: Optional, default 1 - Nodes are initialized with unique coordinates based on their index, coord_scale is a scalar for these initial coordinates.
-    :param dimensions: Optional, default None - The amount of dimensions a node uses for its coordinates. If none is given dimensions = len(shape).
+    :param coord_scale: Optional, default 1 - Nodes are initialized with unique coordinates based on their index,
+        coord_scale is a scalar for these initial coordinates.
+    :param dimensions: Optional, default None - The amount of dimensions a node uses for its coordinates. If none is
+        given dimensions = len(shape).
     :return: A Graph containing nodes in the grid shape, with neighbours connected.
     """
     g = Graph(shape, coord_scale=coord_scale, dimensions=dimensions)
@@ -158,7 +167,8 @@ def create_grid(shape, coord_scale=1, dimensions=None):
 
 
 def connect_to_neighbours(index, graph):
-    """Used to create a square-grid graph. Connects a node to all its direct neighbours in all dimensions based on the index of nodes.
+    """Used to create a square-grid graph. Connects a node to all its direct neighbours in all dimensions based on the
+        index of nodes.
 
     :param index: The index of the node that should be connected to its neighbouring nodes.
     :param graph: The graph containing the nodes.

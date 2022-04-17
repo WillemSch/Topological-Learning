@@ -2,7 +2,8 @@ import torch
 
 
 def add_tuples(a, b):
-    """Method to add 2 tuples together. If lengths of tuples mismatch the last n indices are of the longest tuple are unaffected.
+    """Method to add 2 tuples together. If lengths of tuples mismatch the last n indices are of the longest tuple are
+        unaffected.
 
     :param a: Tuple of length i.
     :param b: Tuple of length j.

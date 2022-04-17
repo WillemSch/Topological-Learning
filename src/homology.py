@@ -22,7 +22,8 @@ def reduce_columns(filtered_complex_matrix):
 
 
 def __find_prev_row_same_low(j, filtered_complex_matrix):
-    """Used in the reduce_columns function. Find a previous row that has its last '1'-entry on the same index as the row at the given index.
+    """Used in the reduce_columns function. Find a previous row that has its last '1'-entry on the same index as the row
+        at the given index.
 
     :param j: The index of the row to compare to.
     :param filtered_complex_matrix: The filtered complex matrix
@@ -47,7 +48,8 @@ def __low(row):
 
 # ================================Rips complex + HBDSCAN===========================================
 def rips(distance_matrix, dimensions=2, max_radius=np.inf, step_size=.1):
-    """Applies the rips algorithm over a given distance matrix to produce a filtered simplicial complex. This algorithm terminates either when all simplexes are found, or when the maximum radius is reached.
+    """Applies the rips algorithm over a given distance matrix to produce a filtered simplicial complex. This algorithm
+        terminates either when all simplexes are found, or when the maximum radius is reached.
 
     :param distance_matrix: A distance matrix of a set of points
     :param dimensions: Optional, default 2 - The upper bound of dimensions for simplexes created.
@@ -144,7 +146,8 @@ def __simplex_exists(simplex, filtered_simplexes):
 
 
 def __all_simplexes_found(zero_simplex_count, filtered_simplexes, max_dimensions):
-    """Checks whether all simplexes are fount in a filtered simplex matrix, given an upper bound on dimensionality of simplexes.
+    """Checks whether all simplexes are fount in a filtered simplex matrix, given an upper bound on dimensionality of
+        simplexes.
 
     :param zero_simplex_count: The amount of 0-simplexes.
     :param filtered_simplexes: The filtered simplex matrix.
@@ -161,7 +164,8 @@ def __to_index_tuples(filtered_simplexes, dimension_filter=None):
     """Get all simplexes from a filtered simplex matrix as tuples of indices of the simplexes that created them.
 
     :param filtered_simplexes: A filtered simplex matrix.
-    :param dimension_filter: Optional, default None - An optional filter to only select simplexes of a given dimensionality
+    :param dimension_filter: Optional, default None - An optional filter to only select simplexes of a given
+        dimensionality
     :return: A list of lists of indices
     """
     simplexes = []
@@ -177,7 +181,8 @@ def __to_index_tuples(filtered_simplexes, dimension_filter=None):
 
 
 def hbdscan_rips(distance_matrix, max_dimensions=2, max_radius=np.inf, step_size=.1, k_core=5):
-    """A simple wrapper function that applies HBDSCAN over a distance matrix before passing it through the rips() function.
+    """A simple wrapper function that applies HBDSCAN over a distance matrix before passing it through the rips()
+        function.
 
     :param distance_matrix: A distance matrix of a set of points.
     :param max_dimensions: Optional, default 2 - The upper bound of dimensions for simplexes created.
@@ -237,7 +242,8 @@ def transform_to_birth_persistence(birth_death_tuples, infinity_replacement):
     """Transform a list of [birth, death] tuples to a list of [birth, persistence] tuples.
 
     :param birth_death_tuples: A list of [birth, death] tuples.
-    :param infinity_replacement: If persistence of a simplex is infinity its persistence will be replaced with this value.
+    :param infinity_replacement: If persistence of a simplex is infinity its persistence will be replaced with this
+        value.
     :return: A list of [birth, persistence] tuples.
     """
 
@@ -259,7 +265,8 @@ class PersistenceImage:
     """
 
     def __init__(self, filtered_complexes, labels):
-        """Initializes the PersistenceImage class. Pre-processes the filtered complex matrix and labels so a persistence image can be generated.
+        """Initializes the PersistenceImage class. Pre-processes the filtered complex matrix and labels so a persistence
+            image can be generated.
 
         :param filtered_complexes: A filtered complex matrix.
         :param labels: The birth-labels corresponding to the filtered complex matrix.
@@ -275,7 +282,8 @@ class PersistenceImage:
     def transform(self, resolution, x_min=None, x_max=None, y_min=None, y_max=None, kernel_spread=2):
         """Generates a persistence image with a given resolution for the dataset.
 
-        :param resolution: The size of the resulting matrix (Integer); result will be matrix of shape (resolution, resolution).
+        :param resolution: The size of the resulting matrix (Integer); result will be matrix of shape (resolution,
+            resolution).
         :param x_min: Optional, default None - Lower bound for the x-axis, if not defined: 0.
         :param x_max: Optional, default None - Upper bound for the x-axis, if not defined: Maximum x value + 0.5.
         :param y_min: Optional, default None - Lower bound for the y-axis, if not defined: 0.
@@ -298,7 +306,8 @@ class PersistenceImage:
     def __to_pixels(self, resolution, x_min, x_max, y_min, y_max, kernel_spread):
         """Used by transform(). Generate the 'pixels' for the dataset.
 
-        :param resolution: The size of the resulting matrix (Integer); result will be matrix of shape (resolution, resolution).
+        :param resolution: The size of the resulting matrix (Integer); result will be matrix of shape (resolution,
+            resolution).
         :param x_min: Lower bound for the x-axis.
         :param x_max: Upper bound for the x-axis.
         :param y_min: Lower bound for the y-axis.
@@ -380,7 +389,8 @@ class PersistenceLandscape:
     """
 
     def __init__(self, filtered_complexes, labels):
-        """Initializes the PersistenceLandscape class. Pre-processes the filtered complex matrix and labels so a persistence landscape can be generated.
+        """Initializes the PersistenceLandscape class. Pre-processes the filtered complex matrix and labels so a
+            persistence landscape can be generated.
 
         :param filtered_complexes: A filtered complex matrix.
         :param labels: The birth-labels corresponding to the filtered complex matrix.
@@ -395,8 +405,10 @@ class PersistenceLandscape:
         """Generate a persistence landscape at a given resolution for the dataset.
 
         :param steps: The amount of steps in the discretization step.
-        :param x_min: Optional, default None - The lower bound of the x-axis, if not specified the lowest x of the dataset is used.
-        :param x_max: Optional, default None - The upper bound of the x-axis, if not specified the highest x of the dataset is used.
+        :param x_min: Optional, default None - The lower bound of the x-axis, if not specified the lowest x of the
+            dataset is used.
+        :param x_max: Optional, default None - The upper bound of the x-axis, if not specified the highest x of the
+            dataset is used.
         :return: A 2 dimensional numpy array with the persistence landscape functions.
         """
         if x_min is None:

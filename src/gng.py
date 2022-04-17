@@ -23,14 +23,20 @@ class GNG:
 
     def train(self, iterations, learning_rate=0.1, age_threshold=100, node_creation_interval=100,
               new_node_error_discount=.5, step_error_discount=.1):
-        """Applies the self-organising-map algorithm over a given dataset and graph. Returns a graph after running the algorithm. NOTE: Running train() multiple times will continue updating the same graph, to restart fresh create a new GNG instance.
+        """Applies the self-organising-map algorithm over a given dataset and graph. Returns a graph after running the
+            algorithm. NOTE: Running train() multiple times will continue updating the same graph, to restart fresh
+            create a new GNG instance.
 
         :param iterations: The amount of iterations to run the GNG algorithm
-        :param learning_rate: Optional, default = 0.1 - The rate at which coordinates of nodes are updated towards the learned direction
+        :param learning_rate: Optional, default = 0.1 - The rate at which coordinates of nodes are updated towards the
+            learned direction
         :param age_threshold: Optional, default = 100 - The maximum age an edge can reach before being removed.
-        :param node_creation_interval: Optional, default = 100 - Defines at what amount of steps a new node should be added.
-        :param new_node_error_discount: Optional default = 0.5 - The discount value for the error when a new node is created.
-        :param step_error_discount: Optional default = 0.1 - The discount value for the error which is subtracted from the errors each step.
+        :param node_creation_interval: Optional, default = 100 - Defines at what amount of steps a new node should be
+            added.
+        :param new_node_error_discount: Optional default = 0.5 - The discount value for the error when a new node is
+            created.
+        :param step_error_discount: Optional default = 0.1 - The discount value for the error which is subtracted from
+            the errors each step.
         :return: The Graph of the GNG class after running the GNG algorithm.
         """
         flattened = self.graph.nodes.flatten()
