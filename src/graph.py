@@ -7,17 +7,22 @@ class Node:
     """A class for Nodes in a Graph, keeps track of neighbours, and coordinates.
 
     :param coordinates: The coordinates of this Node, should be a tuple or list of any dimension.
+    :param attrs: Optional, default None - An optional dictionary parameter for additional attributes you want to
+        connect to the node.
     """
 
-    def __init__(self, coordinates):
+    def __init__(self, coordinates, attrs=None):
         """Initializes the Node class. Sets its coordinates to the given coordinates, and sets its neighbours to an
         empty list.
 
         :param coordinates: The coordinates of this Node, should be a tuple or list of any dimension.
+        :param attrs: Optional, default None - An optional dictionary parameter for additional attributes you want to
+            connect to the node.
         """
         self.key_coords = tuple(coordinates)
         self.neighbours = []
         self.coordinates = tuple(coordinates)
+        self.attrs = attrs
 
     def __key(self):
         """Create __key function to use initial_coordinate as key for class Node.
@@ -114,14 +119,16 @@ class Graph:
             coords = add_tuples(tuple(np.zeros(dimensions)), i)
             self.nodes[i] = Node(coordinates=multiply_tuple(coord_scale, coords))
 
-    def add_node(self, coordinates):
+    def add_node(self, coordinates, attrs=None):
         """Adds a node to the graph with given coordinates.
 
         :param coordinates: A tuple with the coordinates of the Node.
+        :param attrs: Optional, default None - An optional dictionary parameter for additional attributes you want to
+            connect to the node.
         :return: The new node, of class Node.
         """
         assert(len(self.nodes.shape) == 1)
-        new_node = Node(coordinates)
+        new_node = Node(coordinates, attrs)
         self.nodes = np.append(self.nodes, [new_node])
         return new_node
 

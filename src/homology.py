@@ -116,13 +116,25 @@ def __new_complexes_created(added_complex, filtered_simplexes, max_dimensions):
 
         # possible optimisation: filter for simplexes that are within radius
         tuples = __to_index_tuples(filtered_simplexes, dim)
+        added_complex_index = len(filtered_simplexes) - 1
+
+        # We only care about tuples that share at least 1 origin simplex with the added_complex
+        # (meaning they are connected)
+        filtered_tuples = [x for x in tuples if len(np.intersect1d(np.where(filtered_simplexes.T[x[0]] == 1), added_complex)) > 0]
+
+        # Are there enough simplexes to make a new one?
         if tuples.shape[0] > dim:
-            for group in combinations(tuples, dim + 1):
+
+            # We are looking for all combinations that consist of len(added_complex) + 1, but since we only care about
+            # combinations where added_complex is included, we iterate over all combinations of len(added_complex)
+            # tuples, and then add the added complex to each combination.
+            for group in combinations(filtered_tuples, dim):
                 group = np.array(group)
-                # the first column of the group contains the indices of the simplexes, so we extract and remove these
-                indices = group[:, 0]
-                group = group[:, 1:]
-                uniques = np.unique(group)
+                indices = np.append(group[:, 0], added_complex_index)  # indices of simplexes in the combination
+                uniques = np.unique(indices)  # Remove duplicate entries
+
+                # If the combination is still of proper length, and doesn't already exist add it as newly created
+                # simplex
                 if uniques.shape[0] == dim + 1:
                     new_complexes.append(indices)
         return new_complexes
@@ -166,7 +178,8 @@ def __to_index_tuples(filtered_simplexes, dimension_filter=None):
     :param filtered_simplexes: A filtered simplex matrix.
     :param dimension_filter: Optional, default None - An optional filter to only select simplexes of a given
         dimensionality
-    :return: A list of lists of indices
+    :return: A list of (tuples with shape [index of simplex in filtered_simplexes, ..indices of simplexes that make up
+        this simplex])
     """
     simplexes = []
     for index, col in enumerate(filtered_simplexes.T):
@@ -221,15 +234,18 @@ def filtered_complexes_to_tuples(filtered_complexes, labels):
     """
 
     tuples = []
-    used = []
+    used = set()
     reduced = reduce_columns(filtered_complexes)
+
     for i, col in enumerate(reduced.T):
         if np.count_nonzero(col) > 0:
             death = labels[i]
             j = np.max(np.where(col == 1))
+            if len(np.where(col == 1)) > 2:
+                print(f"non-zero {np.where(col == 1).shape} - {i} - {labels[i]} - {j} - {labels[j]}")
             birth = labels[j]
-            used.append(i)
-            used.append(j)
+            used.add(i)
+            used.add(j)
             tuples.append([birth, death])
 
     tuples = np.array(tuples)
