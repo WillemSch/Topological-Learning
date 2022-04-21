@@ -154,7 +154,7 @@ class TopAELoss(nn.Module):
         :param distance_matrix: A distance matrix of all simplexes.
         :return: Numpy array of distances between the relevant simplexes.
         """
-        return np.array([distance_matrix[i[0], i[1]] for i in relevant_indices])
+        return np.array([distance_matrix[i] for i in relevant_indices])
 
     def __relevant_points(self, diagram):
         """Find the relevant simplexes in a persistence diagram. (Only works for 1 dimensional homology at the moment)

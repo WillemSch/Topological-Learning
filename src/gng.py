@@ -8,24 +8,21 @@ from util import average_tuples
 class GNG:
     """A class to apply the Growing-Neural-Gas algorithm over a given dataset, generating a Graph.
 
-    :param data: A list of coordinate tuples of data-points
+    :param iterations: The amount of iterations to run the GNG algorithm
+    :param learning_rate: Optional, default = 0.1 - The rate at which coordinates of nodes are updated towards the
+        learned direction
+    :param age_threshold: Optional, default = 100 - The maximum age an edge can reach before being removed.
+    :param node_creation_interval: Optional, default = 100 - Defines at what amount of steps a new node should be
+        added.
+    :param new_node_error_discount: Optional default = 0.5 - The discount value for the error when a new node is
+        created.
+    :param step_error_discount: Optional default = 0.1 - The discount value for the error which is subtracted from
+        the errors each step.
     """
 
-    def __init__(self, data):
+    def __init__(self, iterations, learning_rate=0.1, age_threshold=100, node_creation_interval=100,
+                 new_node_error_discount=.5, step_error_discount=.1):
         """Initializes the GNG class and generates a Graph to start the algorithm with.
-
-        :param data: A list of coordinate tuples of data-points
-        """
-
-        # Keep the same amount of dimensions in the graph as the data-set has
-        self.graph = graph.create_grid(2, dimensions=len(data.shape))
-        self.data = data
-
-    def train(self, iterations, learning_rate=0.1, age_threshold=100, node_creation_interval=100,
-              new_node_error_discount=.5, step_error_discount=.1):
-        """Applies the self-organising-map algorithm over a given dataset and graph. Returns a graph after running the
-        algorithm. NOTE: Running train() multiple times will continue updating the same graph, to restart fresh
-        create a new GNG instance.
 
         :param iterations: The amount of iterations to run the GNG algorithm
         :param learning_rate: Optional, default = 0.1 - The rate at which coordinates of nodes are updated towards the
@@ -37,13 +34,38 @@ class GNG:
             created.
         :param step_error_discount: Optional default = 0.1 - The discount value for the error which is subtracted from
             the errors each step.
+        """
+        self.graph = None
+        self.iterations = iterations
+        self.learning_rate = learning_rate
+        self.age_threshold = age_threshold
+        self.node_creation_interval = node_creation_interval
+        self.new_node_error_discount = new_node_error_discount
+        self.step_error_discount = step_error_discount
+
+    def fit(self, data):
+        """Fit the GNG class to the dataset.
+
+        :param data: A list of coordinate tuples of data-points
+        :return: This class instance.
+        """
+        # Keep the same amount of dimensions in the graph as the data-set has
+        self.graph = graph.create_grid(2, dimensions=len(data.shape))
+        return self
+
+    def transform(self, data):
+        """Applies the self-organising-map algorithm over a given dataset and graph. Returns a graph after running the
+        algorithm. NOTE: Running transform() multiple times will continue updating the same graph, to restart fresh
+        create a new GNG instance.
+
+        :param data: A list of coordinate tuples of data-points
         :return: The Graph of the GNG class after running the GNG algorithm.
         """
         flattened = self.graph.nodes.flatten()
         error = {n: 0 for n in flattened}
         edges = {(flattened[edge[0]], flattened[edge[1]]): 0 for edge in self.graph.get_edges()} # Keeps track of the age of edges
-        for count in range(iterations):
-            for i_x, x in enumerate(self.data):
+        for count in range(self.iterations):
+            for i_x, x in enumerate(data):
                 i, j = self.__find_n_closest(x, n=2)
                 flattened = self.graph.nodes.flatten()
                 ni = flattened[i[0]]
@@ -53,14 +75,14 @@ class GNG:
 
                 # Update w_i
                 ni.coordinates = add_tuples(ni.coordinates, multiply_tuple(
-                    learning_rate,
+                    self.learning_rate,
                     add_tuples(x, multiply_tuple(-1, ni.coordinates))
                 ))
 
                 # Update w_j
                 nj = flattened[j[0]]
                 nj.coordinates = add_tuples(nj.coordinates, multiply_tuple(
-                    learning_rate,
+                    self.learning_rate,
                     add_tuples(x, multiply_tuple(-1, nj.coordinates))
                 ))
 
@@ -78,7 +100,7 @@ class GNG:
                 # Remove old edges, and unconnected nodes
                 removed_edges = []
                 for edge in edges:
-                    if edges[edge] > age_threshold:
+                    if edges[edge] > self.age_threshold:
                         edge[0].disconnect(edge[1])
                         removed_edges.append(edge)
                         # Remove any nodes that have no neighbours (no edges)
@@ -90,7 +112,7 @@ class GNG:
                     edges.pop(edge)
 
                 # Every m steps insert node between nodes with highest error, and neighbour with highest error
-                if ((count * len(self.data)) + i_x) % node_creation_interval == 0:
+                if ((count * len(data)) + i_x) % self.node_creation_interval == 0:
                     highest_error = max(error, key=error.get)
                     highest_neighbour = None
                     for n in highest_error.neighbours:
@@ -103,13 +125,13 @@ class GNG:
                     highest_neighbour.disconnect(highest_error)
                     new.connect(highest_neighbour)
                     new.connect(highest_error)
-                    error[highest_neighbour] -= new_node_error_discount
-                    error[highest_error] -= new_node_error_discount
+                    error[highest_neighbour] -= self.new_node_error_discount
+                    error[highest_error] -= self.new_node_error_discount
                     error[new] = 0
 
                 # Decrease all errors
                 for n in error:
-                    error[n] -= step_error_discount
+                    error[n] -= self.step_error_discount
         return self.graph
 
     def __find_n_closest(self, x, n):

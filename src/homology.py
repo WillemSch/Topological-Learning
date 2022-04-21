@@ -12,7 +12,7 @@ def reduce_columns(filtered_complex_matrix):
     :return: A column-reduced filtered complex matrix
     """
     # For easier manipulation of columns, transpose the matrix:
-    filtered_complex_matrix = filtered_complex_matrix.T
+    filtered_complex_matrix = np.copy(filtered_complex_matrix).T
     for j in range(1, len(filtered_complex_matrix)):
         j_prime = __find_prev_row_same_low(j, filtered_complex_matrix)
         while j_prime is not None:
@@ -46,46 +46,99 @@ def __low(row):
     return indices[-1]
 
 
-# ================================Rips complex + HBDSCAN===========================================
-def rips(distance_matrix, dimensions=2, max_radius=np.inf, step_size=.1):
-    """Applies the rips algorithm over a given distance matrix to produce a filtered simplicial complex. This algorithm
-    terminates either when all simplexes are found, or when the maximum radius is reached.
+def get_creator_simplex_indices(filtered_complex, dimension_filter=None):
+    """For all n-simplexes, where n > 0, return the 0-simplex with the highest birth filtration value that makes up the
+    original simplex.
 
-    :param distance_matrix: A distance matrix of a set of points
-    :param dimensions: Optional, default 2 - The upper bound of dimensions for simplexes created.
-    :param max_radius: Optional, default np.inf (infinity) - The maximum
-    :param step_size: Optional, default 0.1 - The amount with which the radius is increased at each step.
-    :return: A filtered complex matrix, and a list with the corresponding birth radii.
+    :param filtered_complex: A non-column reduced filtered simplicial complex (numpy nd-array)
+    :param dimension_filter: Optional, default None - List of Integers, only return creator simplexes for n-simplexes
+        where n in ```dimension_filter```
+    :return: A list of indices of creator 0-simplexes.
     """
-    radius = 0
-    # We start with all 0-simplexes with birth value 0.
-    filtered_simplexes = np.array([np.zeros(len(distance_matrix[0])) for _ in range(distance_matrix.shape[0])])
-    labels = [0. for _ in range(distance_matrix.shape[0])]
+    indices = set()
+    for col in filtered_complex.T:
+        non_zero_indices = np.where(col != 0)[0]
+        if len(non_zero_indices) == 0:
+            continue
 
-    while not __all_simplexes_found(distance_matrix.shape[0], filtered_simplexes, dimensions) and radius <= max_radius:
+        if dimension_filter is not None and len(non_zero_indices) - 1 in dimension_filter:
+            prev_non_zero_indices = non_zero_indices
+            simplex_col = filtered_complex.T[np.max(non_zero_indices)]
+            simplex_non_zero_indices = np.where(simplex_col != 0)[0]
 
-        for i in range(distance_matrix.shape[0]):
-            for j in range(i + 1, distance_matrix.shape[0]):
-                new_simplexes = [[i, j]]  # Create edge
+            while simplex_non_zero_indices.shape[0] > 0:
+                prev_non_zero_indices = simplex_non_zero_indices
+                simplex_col = filtered_complex.T[np.max(simplex_non_zero_indices)]
+                simplex_non_zero_indices = np.where(simplex_col != 0)[0]
 
-                while len(new_simplexes) > 0:  # Recursively add simplexes if a higher-dimensional simplex is created
-                    next_simplexes = []
-                    for simplex in new_simplexes:
-                        if distance_matrix[i][j] < 2 * radius and not __simplex_exists(simplex, filtered_simplexes):
-                            filtered_simplexes = __add_complex(simplex, filtered_simplexes)
-                            labels.append(radius)  # Save the birth label
+            indices.add(np.max(prev_non_zero_indices))
 
-                            # If the new simplex adds higher dimensional simplexes add those as well
-                            # and again check if higher dimensional simplexes are made
-                            next_simplexes += __new_complexes_created(simplex, filtered_simplexes, dimensions)
-                    new_simplexes = next_simplexes
-
-        radius += step_size
-
-    return filtered_simplexes, labels
+    return list(indices)
 
 
-def __add_complex(new_complex, filtered_simplexes):
+# ================================Rips complex + HBDSCAN===========================================
+class Rips:
+    """A class to apply the rips algorithm to a distance matrix.
+
+    :param dimensions: Optional, default 2 - The upper bound of dimensions for simplexes created.
+    :param max_radius: Optional, default np.inf (infinity) - The maximum radius of spheres in the Rips algorithm.
+    """
+
+    def __init__(self, dimensions=2, max_radius=np.inf):
+        """Initialize the Rips class
+
+        :param dimensions: Optional, default 2 - The upper bound of dimensions for simplexes created.
+        :param max_radius: Optional, default np.inf (infinity) - The maximum radius of spheres in the Rips algorithm.
+        """
+        self.dimensions = dimensions
+        self.max_radius = max_radius
+        self.filtered_simplexes = None
+        self.labels = None
+
+    def fit(self, distance_matrix):
+        """Fit the Rips class to the distance matrix.
+
+        :param distance_matrix: A distance matrix of a set of points.
+        :return: This class instance.
+        """
+        self.filtered_simplexes = np.array([np.zeros(len(distance_matrix[0])) for _ in range(distance_matrix.shape[0])])
+        self.labels = [0. for _ in range(distance_matrix.shape[0])]
+        return self
+
+
+    def transform(self, distance_matrix):
+        """Applies the Rips algorithm over a given distance matrix to produce a filtered simplicial complex. This
+        algorithm terminates either when all simplexes are found, or when the maximum radius is reached.
+
+        :param distance_matrix: A distance matrix of a set of points
+        :return: A filtered complex matrix, and a list with the corresponding birth radii.
+        """
+        distance_matrix = distance_matrix.copy()
+
+        for j in range(distance_matrix.shape[0]):
+            # Set all nodes to have infinity distance to themselves, so they don't get added again.
+            distance_matrix[j, j] = np.inf
+
+        min_index = np.unravel_index(np.argmin(distance_matrix, axis=None), distance_matrix.shape)
+
+        while distance_matrix[min_index] != np.inf and distance_matrix[min_index] <= self.max_radius * 2:
+            new_complexes = [list(min_index)]
+            while len(new_complexes) > 0:
+                next_complexes = []
+                for complex in new_complexes:
+                    self.filtered_simplexes = add_complex(complex, self.filtered_simplexes)
+                    self.labels.append(distance_matrix[min_index] / 2)
+                    next_complexes += new_complexes_created(complex, self.filtered_simplexes, max_dimensions=self.dimensions)
+                new_complexes = next_complexes
+
+            distance_matrix[min_index] = np.inf
+            distance_matrix[(min_index[1], min_index[0])] = np.inf
+            min_index = np.unravel_index(np.argmin(distance_matrix, axis=None), distance_matrix.shape)
+
+        return self.filtered_simplexes, self.labels
+
+
+def add_complex(new_complex, filtered_simplexes):
     """Adds a simplex to the filtered simplex matrix, and expands the matrix to fit the new number of simplexes
 
     :param new_complex: A list of indices of simplexes that created this simplex.
@@ -100,7 +153,7 @@ def __add_complex(new_complex, filtered_simplexes):
     return filtered_simplexes
 
 
-def __new_complexes_created(added_complex, filtered_simplexes, max_dimensions):
+def new_complexes_created(added_complex, filtered_simplexes, max_dimensions):
     """Checks if complexes are created because of the birth of a simplex.
 
     :param added_complex: The newly added complex; list of indices of simplexes that created it.
@@ -115,7 +168,7 @@ def __new_complexes_created(added_complex, filtered_simplexes, max_dimensions):
         dim = len(added_complex)
 
         # possible optimisation: filter for simplexes that are within radius
-        tuples = __to_index_tuples(filtered_simplexes, dim)
+        tuples = to_index_tuples(filtered_simplexes, dim)
         added_complex_index = len(filtered_simplexes) - 1
 
         # We only care about tuples that share at least 1 origin simplex with the added_complex
@@ -133,14 +186,29 @@ def __new_complexes_created(added_complex, filtered_simplexes, max_dimensions):
                 indices = np.append(group[:, 0], added_complex_index)  # indices of simplexes in the combination
                 uniques = np.unique(indices)  # Remove duplicate entries
 
+                simplexes = np.concatenate((group[:, 1:], [added_complex]))
+
                 # If the combination is still of proper length, and doesn't already exist add it as newly created
                 # simplex
-                if uniques.shape[0] == dim + 1:
+                if uniques.shape[0] == dim + 1 and is_valid_simplex(simplexes):
                     new_complexes.append(indices)
         return new_complexes
 
 
-def __simplex_exists(simplex, filtered_simplexes):
+def is_valid_simplex(index_tuples):
+    """Check whether a set of simplexes (in the form of lists of indices) are a valid simplex
+
+    :param index_tuples: A list of lists of indices that make up the simplexes.
+    :return: True if the combination of tuples is a valid simplex, False otherwise.
+    """
+    flattened = index_tuples.flatten()
+    occurrences = set([np.sum(flattened == x) for x in np.unique(flattened)])
+
+    # Every simplex should appear exactly twice
+    return len(occurrences) == 1 and occurrences.pop() == 2
+
+
+def simplex_exists(simplex, filtered_simplexes):
     """Checks whether a given simplex exists in a filtered simplex matrix.
 
     :param simplex: A list of indices that created the simplex.
@@ -157,7 +225,7 @@ def __simplex_exists(simplex, filtered_simplexes):
     return False
 
 
-def __all_simplexes_found(zero_simplex_count, filtered_simplexes, max_dimensions):
+def all_simplexes_found(zero_simplex_count, filtered_simplexes, max_dimensions):
     """Checks whether all simplexes are fount in a filtered simplex matrix, given an upper bound on dimensionality of
     simplexes.
 
@@ -172,7 +240,7 @@ def __all_simplexes_found(zero_simplex_count, filtered_simplexes, max_dimensions
     return max_c == filtered_simplexes.shape[0]
 
 
-def __to_index_tuples(filtered_simplexes, dimension_filter=None):
+def to_index_tuples(filtered_simplexes, dimension_filter=None):
     """Get all simplexes from a filtered simplex matrix as tuples of indices of the simplexes that created them.
 
     :param filtered_simplexes: A filtered simplex matrix.
@@ -193,35 +261,59 @@ def __to_index_tuples(filtered_simplexes, dimension_filter=None):
     return np.array(simplexes)
 
 
-def hbdscan_rips(distance_matrix, max_dimensions=2, max_radius=np.inf, step_size=.1, k_core=5):
+class HbdscanRips:
     """A simple wrapper function that applies HBDSCAN over a distance matrix before passing it through the rips()
     function.
 
-    :param distance_matrix: A distance matrix of a set of points.
     :param max_dimensions: Optional, default 2 - The upper bound of dimensions for simplexes created.
     :param max_radius: Optional, default np.inf (infinity) - The maximum
-    :param step_size: Optional, default 0.1 - The amount with which the radius is increased at each step.
     :param k_core: The neighbourhood size (K) to be used to calculate the core distances.
-    :return: A filtered complex matrix, and a list with the corresponding birth radii.
     """
-    altered_distances = np.zeros(distance_matrix.shape)
-    for i in range(distance_matrix.shape[0]):
-        for j in range(i + 1, distance_matrix.shape[0]):
-            i_core = __core_distance(distance_matrix, i, k_core)
-            j_core = __core_distance(distance_matrix, j, k_core)
-            altered_distances[i][j] = altered_distances[j][i] = max(i_core, j_core, distance_matrix[i][j])
-    return rips(altered_distances, dimensions=max_dimensions, max_radius=max_radius, step_size=step_size)
 
+    def __init__(self, max_dimensions=2, max_radius=np.inf, k_core=5):
+        """Initialize the class, and create an instance of HbdscanRips.
 
-def __core_distance(distance_matrix, origin_index, k):
-    """Calculates the core distance for a given point in a distance matrix.
+        :param max_dimensions: Optional, default 2 - The upper bound of dimensions for simplexes created.
+        :param max_radius: Optional, default np.inf (infinity) - The maximum
+        :param k_core: The neighbourhood size (K) to be used to calculate the core distances.
+        """
+        self.rips = Rips(max_dimensions, max_radius)
+        self.k_core = k_core
 
-    :param distance_matrix: A distance matrix of a set of points.
-    :param origin_index: The index of the point to calculate the core distance for.
-    :param k: The neighbourhood size.
-    :return: The distance between this point and its Kth nearest neighbour.
-    """
-    return np.max(np.sort(distance_matrix[origin_index])[1:k + 1])
+    def fit(self, distance_matrix):
+        """Fit the class to the distance matrix.
+
+        :param distance_matrix: A distance matrix of a set of points.
+        :return: This class instance.
+        """
+        self.rips.fit(distance_matrix)
+        return self
+
+    def transform(self, distance_matrix):
+        """Applies the Rips algorithm over the core distances of a given distance matrix to produce a filtered
+        simplicial complex. This algorithm terminates either when all simplexes are found, or when the maximum radius is
+        reached.
+
+        :param distance_matrix: A distance matrix of a set of points
+        :return: A filtered complex matrix, and a list with the corresponding birth radii.
+        """
+        altered_distances = np.zeros(distance_matrix.shape)
+        for i in range(distance_matrix.shape[0]):
+            for j in range(i + 1, distance_matrix.shape[0]):
+                i_core = self.__core_distance(distance_matrix, i, self.k_core)
+                j_core = self.__core_distance(distance_matrix, j, self.k_core)
+                altered_distances[i][j] = altered_distances[j][i] = max(i_core, j_core, distance_matrix[i][j])
+        return self.rips.transform(altered_distances)
+
+    def __core_distance(self, distance_matrix, origin_index, k):
+        """Calculates the core distance for a given point in a distance matrix.
+
+        :param distance_matrix: A distance matrix of a set of points.
+        :param origin_index: The index of the point to calculate the core distance for.
+        :param k: The neighbourhood size.
+        :return: The distance between this point and its Kth nearest neighbour.
+        """
+        return np.max(np.sort(distance_matrix[origin_index])[1:k + 1])
 
 
 # ================================Persistence Image===========================================
@@ -276,47 +368,64 @@ def transform_to_birth_persistence(birth_death_tuples, infinity_replacement):
 class PersistenceImage:
     """A class to produce Persistence Images from a filtered complex matrix.
 
-    :param filtered_complexes: A filtered complex matrix.
-    :param labels: The birth-labels corresponding to the filtered complex matrix.
+    :param resolution: The size of the resulting matrix (Integer); result will be matrix of shape (resolution,
+        resolution).
+    :param kernel_spread: Optional, default 2 - Defines the kernel-spread used to calculate density.
     """
 
-    def __init__(self, filtered_complexes, labels):
-        """Initializes the PersistenceImage class. Pre-processes the filtered complex matrix and labels so a persistence
-        image can be generated.
+    def __init__(self, resolution, kernel_spread=2):
+        self.resolution = resolution
+        self.kernel_spread = kernel_spread
+        self.max_weight = 1
+        self.points = None
+        self.x_min = self.x_max = self.y_min = self.y_max = None
+
+    def fit(self, filtered_complexes, labels, x_min=None, x_max=None, y_min=None, y_max=None):
+        """Fits the PersistenceImage to the filtered simplicial complex. Pre-processes the filtered complex matrix and
+        labels so a persistence image can be generated.
 
         :param filtered_complexes: A filtered complex matrix.
         :param labels: The birth-labels corresponding to the filtered complex matrix.
+        :param x_min: Optional, default None - Lower bound for the x-axis, if not defined: 0.
+        :param x_max: Optional, default None - Upper bound for the x-axis, if not defined: Maximum x value + 0.5.
+        :param y_min: Optional, default None - Lower bound for the y-axis, if not defined: 0.
+        :param y_max: Optional, default None - Upper bound for the y-axis, if not defined: Maximum y value + 0.5.
+        :return: This class instance.
         """
-        self.max_weight = 1
-
         tuples = filtered_complexes_to_tuples(filtered_complexes, labels)
         # Replace death = infinity with 2x the greatest death value
         masked_tuples = np.ma.array(tuples, mask=~np.isfinite(tuples)).flatten()
         max_idx = np.ma.argmax(masked_tuples, fill_value=-np.inf)  # <- The index of the simplex with highest death value that isn't infinity
         self.points = transform_to_birth_persistence(tuples, infinity_replacement=2 * tuples.flatten()[max_idx])
 
-    def transform(self, resolution, x_min=None, x_max=None, y_min=None, y_max=None, kernel_spread=2):
+        if x_min is None:
+            self.x_min = 0
+        else:
+            self.x_min = x_min
+
+        if x_max is None:
+            self.x_max = np.max(self.points.T[0]) + .5
+        else:
+            self.x_max = x_max
+
+        if y_min is None:
+            self.y_min = 0
+        else:
+            self.y_min = y_min
+
+        if y_max is None:
+            self.y_max = np.max(self.points.T[1]) + .5
+        else:
+            self.y_max = y_max
+
+        return self
+
+    def transform(self, filtered_complexes, labels):
         """Generates a persistence image with a given resolution for the dataset.
 
-        :param resolution: The size of the resulting matrix (Integer); result will be matrix of shape (resolution,
-            resolution).
-        :param x_min: Optional, default None - Lower bound for the x-axis, if not defined: 0.
-        :param x_max: Optional, default None - Upper bound for the x-axis, if not defined: Maximum x value + 0.5.
-        :param y_min: Optional, default None - Lower bound for the y-axis, if not defined: 0.
-        :param y_max: Optional, default None - Upper bound for the y-axis, if not defined: Maximum y value + 0.5.
-        :param kernel_spread: Optional, default 2 - Defines the kernel-spread used to calculate density.
         :return: A matrix of shape (resolution, resolution) with describing the density at each pixel.
         """
-        if x_min is None:
-            x_min = 0
-        if x_max is None:
-            x_max = np.max(self.points.T[0]) + .5
-        if y_min is None:
-            y_min = 0
-        if y_max is None:
-            y_max = np.max(self.points.T[1]) + .5
-
-        pixels = self.__to_pixels(resolution, x_min, x_max, y_min, y_max, kernel_spread)
+        pixels = self.__to_pixels(self.resolution, self.x_min, self.x_max, self.y_min, self.y_max, self.kernel_spread)
         return pixels
 
     def __to_pixels(self, resolution, x_min, x_max, y_min, y_max, kernel_spread):
@@ -400,16 +509,27 @@ def transform_to_mid_half_life(birth_death_tuples, infinity_replacement):
 class PersistenceLandscape:
     """A class to produce Persistence Images from a filtered complex matrix.
 
-    :param filtered_complexes: A filtered complex matrix.
-    :param labels: The birth-labels corresponding to the filtered complex matrix.
+    :param steps: The amount of steps in the discretization step.
     """
 
-    def __init__(self, filtered_complexes, labels):
-        """Initializes the PersistenceLandscape class. Pre-processes the filtered complex matrix and labels so a
-            persistence landscape can be generated.
+    def __init__(self, steps):
+        self.steps = None
+        self.x_min = None
+        self.x_max = None
+        self.points = None
+        self.steps = steps
+
+    def fit(self, filtered_complexes, labels, x_min=None, x_max=None):
+        """Fits the PersistenceLandscape class. Pre-processes the filtered complex matrix and labels so a
+        persistence landscape can be generated.
 
         :param filtered_complexes: A filtered complex matrix.
         :param labels: The birth-labels corresponding to the filtered complex matrix.
+        :param x_min: Optional, default None - The lower bound of the x-axis, if not specified the lowest x of the
+            dataset is used.
+        :param x_max: Optional, default None - The upper bound of the x-axis, if not specified the highest x of the
+            dataset is used.
+        :return: This class instance.
         """
         tuples = filtered_complexes_to_tuples(filtered_complexes, labels)
         # Replace death = infinity with 2x the greatest death value
@@ -417,32 +537,34 @@ class PersistenceLandscape:
         max_idx = np.ma.argmax(masked_tuples, fill_value=-np.inf)
         self.points = transform_to_mid_half_life(tuples, infinity_replacement=2 * tuples.flatten()[max_idx])
 
-    def transform(self, steps, x_min=None, x_max=None):
+        if x_min is None:
+            self.x_min = min(self.points, key=lambda x: x[0])[0]
+        else:
+            self.x_min = x_min
+        if x_max is None:
+            self.x_max = max(self.points, key=lambda x: x[0])[0]
+        else:
+            self.x_max = x_max
+        return self
+
+    def transform(self, filtered_complexes, labels):
         """Generate a persistence landscape at a given resolution for the dataset.
 
-        :param steps: The amount of steps in the discretization step.
-        :param x_min: Optional, default None - The lower bound of the x-axis, if not specified the lowest x of the
-            dataset is used.
-        :param x_max: Optional, default None - The upper bound of the x-axis, if not specified the highest x of the
-            dataset is used.
+        :param filtered_complexes: A filtered complex matrix.
+        :param labels: The birth-labels corresponding to the filtered complex matrix.
         :return: A 2 dimensional numpy array with the persistence landscape functions.
         """
-        if x_min is None:
-            x_min = min(self.points, key=lambda x: x[0])[0]
-        if x_max is None:
-            x_max = max(self.points, key=lambda x: x[0])[0]
+        result = np.zeros((len(self.points), self.steps))
 
-        result = np.zeros((len(self.points), steps))
-
-        step_size = (x_max - x_min) / steps
-        for i in range(steps):
-            x = step_size * i + x_min
+        step_size = (self.x_max - self.x_min) / self.steps
+        for i in range(self.steps):
+            x = step_size * i + self.x_min
             for y, point in enumerate(self.points):
                 result[y, i] = self.__get_triangle_height(x, point)
 
         result = np.flip(np.sort(result, axis=0), axis=0)
 
-        return (x_min, x_max), result
+        return (self.x_min, self.x_max), result
 
     def __get_triangle_height(self, x, peak):
         """Get the height of a triangle at a given point on the x axis.

@@ -26,45 +26,64 @@ def second_dimension(x):
 class Reeb:
     """A class to generate a Reeb graph for a given dataset and projection function
 
-    :param function: Optional, default second_dimension() - A function that maps a datapoint to a number.
+    :param intervals: The amount of intervals the Reeb-algorithm will divide the range of points in.
+    :param overlap: Optional, default 0.2 - The overlap of the intervals, in percentages (1 = 100%, .5 = 50%, etc.)
+    :param max_k: The maximum amount of clusters per interval that are tested. Limits nodes per interval to the
+        range 1 to max_k.
     """
 
-    # function has to map data to a real number
-    def __init__(self, function=second_dimension):
+    def __init__(self, intervals, overlap=.2, max_k=5):
         """Initializes the Reeb class, with a projection function and creates a Graph instance to be used.
 
-        :param function: Optional, default second_dimension() - A function that maps a datapoint to a number.
-        """
-        self.function = function
-        self.g = Graph.Graph(0, dimensions=2)
-
-    def map(self, data, intervals, overlap=.2, max_k=5):
-        """Generate a Reeb-graph for a given dataset using the pre-defined projection function.
-
-        :param data: A list of datapoints before they are passed through the projection function.
-        :param intervals: The amount of intervals the reeb-algorithm will divide the range of points in.
+        :param intervals: The amount of intervals the Reeb-algorithm will divide the range of points in.
         :param overlap: Optional, default 0.2 - The overlap of the intervals, in percentages (1 = 100%, .5 = 50%, etc.)
         :param max_k: The maximum amount of clusters per interval that are tested. Limits nodes per interval to the
             range 1 to max_k.
+        """
+        self.function = None
+        self.g = Graph.Graph(0, dimensions=2)
+        self.intervals = intervals
+        self.overlap = overlap
+        self.max_k = max_k
+        self.data_range = None
+        self.range_distance = None
+        self.interval_size = None
+
+    def fit(self, data, function=second_dimension):
+        """Fit the Reeb class to the data, and set a projection function.
+
+        :param data: A list of data-points before they are passed through the projection function.
+        :param function: Optional, default second_dimension() - A function that maps a datapoint to a number.
+        :return: This class instance.
+        """
+        self.function = function
+
+        processed_data = [[self.function(x)] for x in data]
+        self.data_range = (np.min(processed_data), np.max(processed_data))
+        self.range_distance = np.abs(self.data_range[1] - self.data_range[0])
+        self.interval_size = (self.range_distance * (1 + self.overlap)) / self.intervals
+        return self
+
+    def transform(self, data):
+        """Generate a Reeb-graph for a given dataset using the pre-defined projection function.
+
+        :param data: A list of data-points before they are passed through the projection function.
         :return: A Reeb-graph fitted to the given dataset with given parameters.
         """
         processed_data = [[self.function(x)] for x in data]
-        data_range = (np.min(processed_data), np.max(processed_data))
-        range_distance = np.abs(data_range[1] - data_range[0])
-        interval_size = (range_distance * (1 + overlap)) / intervals
 
-        interval_end = interval_size * overlap + data_range[0]
+        interval_end = self.interval_size * self.overlap + self.data_range[0]
         prev_nodes = []
-        for i in range(intervals):
-            interval_start = interval_end - interval_size * overlap
-            interval_end = interval_start + interval_size
+        for i in range(self.intervals):
+            interval_start = interval_end - self.interval_size * self.overlap
+            interval_end = interval_start + self.interval_size
             interval = (interval_start, interval_end)
             preimage_data = self.__get_preimage_for_interval(data, processed_data, interval)
 
             # Since silhouette score can only be computed for k >= 2, we say K = 1 is best if no other k gets a
             # silhouette score above .6
             best_cluster_score = (np.zeros(len(preimage_data)), .6, 1)
-            for k in range(2, max_k + 1):
+            for k in range(2, self.max_k + 1):
                 if k > len(preimage_data) - 1:
                     break
                 km = KMeans(n_clusters=k)
@@ -83,7 +102,6 @@ class Reeb:
                 new_nodes.append((new_node, node_data))
             prev_nodes = new_nodes
 
-        self.rearrange_nodes()
         return self.g
 
     def __get_preimage_for_interval(self, data, processed_data, interval):
