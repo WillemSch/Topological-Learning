@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as functional
-from homology import rips
+from homology import Rips
 from math import prod
 import numpy as np
 from util import create_distance_matrix
@@ -134,8 +134,9 @@ class TopAELoss(nn.Module):
         """
 
         # assert(dimensions == 1, "This implementation only supports 1 dimensional homology")
-        self.relevant_input = self.__relevant_points(rips(input, dimensions=1)[0])
-        self.relevant_latent = self.__relevant_points(rips(latent, dimensions=1)[0])
+        rips = Rips(dimensions=1)
+        self.relevant_input = self.__relevant_points(rips.fit(input.numpy()).transform(input.numpy())[0])
+        self.relevant_latent = self.__relevant_points(rips.fit(latent.numpy()).transform(latent.numpy())[0])
 
         self.A_input = create_distance_matrix(output.reshape((point_count, len(input) // point_count)))
         self.A_latent = create_distance_matrix(output.reshape((point_count, len(latent) // point_count)))

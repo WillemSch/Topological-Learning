@@ -5,7 +5,7 @@ with open("README.md", "r") as file:
 
 setup(
     name='TopologicalLearningTechniques',
-    version='0.1.1',
+    version='0.2.1',
     description='Package created for INF367AII at UiB',
     py_modules=["gng", "graph", "homology", "neural_net", "reeb", "som", "util"],  # All modules here
     package_dir={'': 'src'},
