@@ -17,6 +17,8 @@ This algorithms implemented in this package can be grouped into 3 groups:
  - **Neural Networks**
    - PersLay
    - Topological Autoencoder *(WIP: the loss function doesn't back-propagate properly yet.)*
+   
+The **application project** can be found under src/project.
 
 ## Documentation
 The documentation for this package is hosted on [readthedocs](https://topological-machine-learning.readthedocs.io/en/latest/).
@@ -27,13 +29,13 @@ tested using Python 3.8.*
 
 To install this package simply use the following pip install bash command:
 ```bash
-$ pip install TopologicalMachineLearningTechniques
+$ pip install TopologicalLearningTechniques
 ```
 
 When developing this package it is a good idea to install the package with the *dev* extras enabled. However, currently 
 there are no additional dev requirements. You can install with dev dependencies using the following command:
 ```bash
-$ pip install TopologicalMachineLearningTechniques[dev]
+$ pip install TopologicalLearningTechniques[dev]
 ```
 
 ## Usage

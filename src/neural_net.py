@@ -151,17 +151,17 @@ class TopAELoss(nn.Module):
     def __relevant_distances(self, relevant_indices, distance_matrix):
         """Get a list of relevant distances from a distance_matrix with pre-determined relevant simplexes.
 
-        :param relevant_indices: The indices of the relevant simplexes.
-        :param distance_matrix: A distance matrix of all simplexes.
-        :return: Numpy array of distances between the relevant simplexes.
+        :param relevant_indices: Tensor of shape (N,2) - The indices of the relevant simplexes.
+        :param distance_matrix: Tensor of shape (M,M) - A distance matrix of all simplexes.
+        :return: Numpy array of shape (N,) - The distances between the relevant simplexes.
         """
         return np.array([distance_matrix[i] for i in relevant_indices])
 
     def __relevant_points(self, diagram):
         """Find the relevant simplexes in a persistence diagram. (Only works for 1 dimensional homology at the moment)
 
-        :param diagram: A persistence diagram without column reduction applied.
-        :return: A list of index tuples of the relevant simplexes.
+        :param diagram: Tensor of shape (N,N) - A persistence diagram without column reduction applied.
+        :return: Tensor of shape (M,2) - A list of index tuples of the relevant simplexes.
         """
         non_zeros = np.count_nonzero(diagram, axis=0)
         # All edges are "destroyers" of 0 dimensional simplexes, and are therefore relevant
